@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -27,6 +28,7 @@ final class Generator implements Listener {
     final DungeonWorld dungeonWorld;
     final int margin;
     private ArrayList<Dungeon> dungeons = new ArrayList<>();
+    private int dungeonIndex = 0;
     private Map<String, Object> chestTag, spawnerTag;
     private final Random random = new Random(System.nanoTime());
 
@@ -57,7 +59,9 @@ final class Generator implements Listener {
             }
         }
         System.out.println("Tags: " + tags);
+        if (ls.isEmpty()) this.dungeonWorld.plugin.getLogger().warning("No dungeons loaded!");
         this.dungeons = ls;
+        Collections.shuffle(this.dungeons, this.random);
         return ls.size();
     }
 
@@ -81,6 +85,7 @@ final class Generator implements Listener {
 
     @EventHandler
     public void onChunkPopulate(ChunkPopulateEvent event) {
+        if (dungeons.isEmpty()) return;
         Chunk chunk = event.getChunk();
         if (!chunk.getWorld().getName().equals(this.dungeonWorld.worldName)) return;
         Bukkit.getScheduler().runTask(this.dungeonWorld.plugin, () -> trySpawnDungeon(chunk));
@@ -116,7 +121,8 @@ final class Generator implements Listener {
         }
         // Pick dungeon
         Block origin = chunk.getWorld().getBlockAt(ox, oy, oz);
-        Dungeon dungeon = dungeons.get(random.nextInt(dungeons.size()));
+        if (dungeonIndex >= dungeons.size()) dungeonIndex = 0;
+        Dungeon dungeon = dungeons.get(dungeonIndex);
         // Size - 1
         final int ux = dungeon.clip.size().x - 1;
         final int uy = dungeon.clip.size().y - 1;
@@ -163,6 +169,7 @@ final class Generator implements Listener {
         this.dungeonWorld.persistence.dungeons.add(pd);
         this.dungeonWorld.savePersistence();
         this.dungeonWorld.plugin.getLogger().info(chunk.getWorld().getName() + ": Dungeon " + dungeon.name + " pasted at " + (ox + ux / 2) + "," + (oy + uy / 2) + "," + (oz + uz / 2));
+        dungeonIndex += 1;
         return true;
     }
 }
