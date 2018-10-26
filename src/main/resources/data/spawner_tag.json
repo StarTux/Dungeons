@@ -1,0 +1,38 @@
+{
+    "SpawnData": {
+        "id": "minecraft:zombie"
+    },
+    "SpawnPotentials": [
+        {
+            "Entity": {
+                "id": "minecraft:creeper"
+            },
+            "Weight": 1
+        },
+        {
+            "Entity": {
+                "id": "minecraft:skeleton",
+                "HandItems": [{"id": "minecraft:bow"},{}]
+            },
+            "Weight": 3
+        },
+        {
+            "Entity": {
+                "id": "minecraft:zombie"
+            },
+            "Weight": 3
+        },
+        {
+            "Entity": {
+                "id": "minecraft:spider"
+            },
+            "Weight": 2
+        },
+        {
+            "Entity": {
+                "id": "minecraft:cave_spider"
+            },
+            "Weight": 1
+        }
+    ]
+}
