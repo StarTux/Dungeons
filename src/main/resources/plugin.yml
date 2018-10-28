@@ -16,3 +16,4 @@ commands:
 permissions:
   dungeons.dungeons:
     description: Use /dungeons
+    default: op
