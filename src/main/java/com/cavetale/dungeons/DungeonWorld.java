@@ -35,7 +35,7 @@ final class DungeonWorld {
     void loadPersistence() {
         World world = Bukkit.getWorld(this.worldName);
         if (world == null) throw new IllegalStateException("World not loaded: " + this.worldName);
-        File file = new File(world.getWorldFolder(), "dungeons.yml");
+        File file = new File(world.getWorldFolder(), "dungeons.json");
         if (!file.isFile()) {
             this.persistence = new Persistence();
             return;
@@ -53,7 +53,7 @@ final class DungeonWorld {
 
     void savePersistence() {
         World world = Bukkit.getWorld(this.worldName);
-        final File file = new File(world.getWorldFolder(), "dungeons.yml");
+        final File file = new File(world.getWorldFolder(), "dungeons.json");
         final Gson gson = new Gson();
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
                 try (FileWriter fileWriter = new FileWriter(file)) {
