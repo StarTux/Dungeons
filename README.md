@@ -40,6 +40,7 @@ A compass can be used by ordinary players to locate dungeons.  The compass is ac
 - Custom loot tables.
 - Double chests spawn with a visual glitch where the right half appears like a single chest which clips into the double chest part.  Adjusting the pasting order should put an end to this, but more empirical data need to be collected.
 - Tags are currently not stored in the persistent `dungeons.json` file.
+- Skeletons spawned with the custom `spawner_tag.json` come unarmed, without a bow in their hands.
 
 ## Dependencies
 - [BlockClip](https://github.com/StarTux/BlockClip) to produce the dungeon schematics, as well as load and paste them via the API.
