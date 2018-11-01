@@ -80,17 +80,12 @@ final class Manager implements Listener {
         int tz = (dungeon.lo.get(2) + dungeon.hi.get(2)) / 2;
         int dx = tx - location.getBlockX();
         int dz = tz - location.getBlockZ();
-        Location target;
+        Location target = new Location(location.getWorld(), (double)tx, location.getY(), (double)tz);
+        player.setCompassTarget(target);
         if (Math.abs(dx) < 8 && Math.abs(dz) < 8) {
             player.playSound(player.getEyeLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, SoundCategory.MASTER, 0.5f, 0.7f);
             player.sendMessage(ChatColor.GOLD + "A dungeon is very close!");
         } else {
-            if (Math.abs(dx) > Math.abs(dz)) {
-                target = new Location(location.getWorld(), (double)tx, location.getY(), location.getZ());
-            } else {
-                target = new Location(location.getWorld(), location.getX(), location.getY(), (double)tz);
-            }
-            player.setCompassTarget(target);
             player.playSound(player.getEyeLocation(), Sound.UI_TOAST_IN, SoundCategory.MASTER, 0.5f, 2.0f);
             player.sendMessage(ChatColor.GOLD + "Your compass points to a nearby dungeon.");
         }
