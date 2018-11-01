@@ -61,8 +61,8 @@ public final class DungeonsPlugin extends JavaPlugin {
                                        + " named " + nearestDungeon.name);
                 } else {
                     player.sendMessage("No dungeon found");
-                    return true;
                 }
+                return true;
             }
             player.sendMessage("This world does not spawn dungeons.");
             return true;
