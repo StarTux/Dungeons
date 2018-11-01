@@ -37,7 +37,7 @@ final class Manager implements Listener {
      */
     void onPlayerInteractChest(PlayerInteractEvent event) {
         if (event.isCancelled()) return;
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.LEFT_CLICK_BLOCK) return;
         if (event.getHand() != EquipmentSlot.HAND) return;
         Block block = event.getClickedBlock();
         if (block == null) return;
