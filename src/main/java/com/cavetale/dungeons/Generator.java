@@ -27,19 +27,19 @@ import org.bukkit.event.world.ChunkPopulateEvent;
 final class Generator implements Listener {
     final DungeonWorld dungeonWorld;
     final int margin;
-    private ArrayList<Dungeon> dungeons = new ArrayList<>();
+    private ArrayList<DungeonClip> dungeons = new ArrayList<>();
     private int dungeonIndex = 0;
     private Map<String, Object> chestTag, spawnerTag;
     private final Random random = new Random(System.nanoTime());
 
     @Value
-    static class Dungeon {
+    static class DungeonClip {
         String name;
         BlockClip clip;
     }
 
     int loadDungeons() {
-        ArrayList<Dungeon> ls = new ArrayList<>();
+        ArrayList<DungeonClip> ls = new ArrayList<>();
         HashSet<String> tags = new HashSet<>();
         File dir = new File(this.dungeonWorld.plugin.getDataFolder(), "dungeons");
         dir.mkdirs();
@@ -52,7 +52,7 @@ final class Generator implements Listener {
                 if (clip.getMetadata().containsKey("tags")) {
                     tags.addAll((List<String>)clip.getMetadata().get("tags"));
                 }
-                ls.add(new Dungeon(name, clip));
+                ls.add(new DungeonClip(name, clip));
             } catch (Exception e) {
                 this.dungeonWorld.plugin.getLogger().warning("Error loading " + file);
                 e.printStackTrace();
@@ -112,7 +112,7 @@ final class Generator implements Listener {
 
     boolean trySpawnDungeon(Chunk chunk, int ox, int oy, int oz) {
         // Check proximity
-        for (DungeonWorld.PersistentDungeon pd: this.dungeonWorld.persistence.dungeons) {
+        for (Dungeon pd: this.dungeonWorld.persistence.dungeons) {
             int ax = pd.lo.get(0) - margin;
             int bx = pd.hi.get(0) + margin;
             int az = pd.lo.get(2) - margin;
@@ -122,7 +122,7 @@ final class Generator implements Listener {
         // Pick dungeon
         Block origin = chunk.getWorld().getBlockAt(ox, oy, oz);
         if (dungeonIndex >= dungeons.size()) dungeonIndex = 0;
-        Dungeon dungeon = dungeons.get(dungeonIndex);
+        DungeonClip dungeon = this.dungeons.get(dungeonIndex);
         // Size - 1
         final int ux = dungeon.clip.size().x - 1;
         final int uy = dungeon.clip.size().y - 1;
@@ -162,10 +162,10 @@ final class Generator implements Listener {
                 }
                 return true;
             });
-        DungeonWorld.PersistentDungeon pd;
-        pd = new DungeonWorld.PersistentDungeon(dungeon.name,
-                                                Arrays.asList(ox, oy, oz),
-                                                Arrays.asList(ox + ux, oy + uy, oz + uz));
+        Dungeon pd;
+        pd = new Dungeon(dungeon.name,
+                         Arrays.asList(ox, oy, oz),
+                         Arrays.asList(ox + ux, oy + uy, oz + uz));
         this.dungeonWorld.persistence.dungeons.add(pd);
         this.dungeonWorld.savePersistence();
         this.dungeonWorld.plugin.getLogger().info(chunk.getWorld().getName() + ": Dungeon " + dungeon.name + " pasted at " + (ox + ux / 2) + "," + (oy + uy / 2) + "," + (oz + uz / 2));

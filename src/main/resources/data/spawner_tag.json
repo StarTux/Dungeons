@@ -7,32 +7,45 @@
             "Entity": {
                 "id": "minecraft:creeper"
             },
-            "Weight": 1
+            "Weight": 10
         },
         {
             "Entity": {
                 "id": "minecraft:skeleton",
-                "HandItems": [{"id": "minecraft:bow"},{}]
+                "HandItems": [
+                    {
+                        "id": "minecraft:bow",
+                        "Count": 1
+                    },
+                    {}
+                ]
             },
-            "Weight": 3
+            "Weight": 50
         },
         {
             "Entity": {
                 "id": "minecraft:zombie"
             },
-            "Weight": 3
+            "Weight": 50
         },
         {
             "Entity": {
                 "id": "minecraft:spider"
             },
-            "Weight": 2
+            "Weight": 50
         },
         {
             "Entity": {
                 "id": "minecraft:cave_spider"
             },
-            "Weight": 1
+            "Weight": 10
+        },
+        {
+            "Entity": {
+                "id": "minecraft:tnt",
+                "Fuse": 200
+            },
+            "Weight": 5
         }
     ]
 }

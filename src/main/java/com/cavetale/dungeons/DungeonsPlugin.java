@@ -1,6 +1,7 @@
 package com.cavetale.dungeons;
 
 import java.util.ArrayList;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -42,29 +43,47 @@ public final class DungeonsPlugin extends JavaPlugin {
         managers.clear();
     }
 
+    Manager managerOf(World world) {
+        for (Manager manager: managers) {
+            if (manager.dungeonWorld.getWorldName().equals(world.getName())) return manager;
+        }
+        return null;
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String alias, String[] args) {
         Player player = sender instanceof Player ? (Player)sender : null;
+        if (player == null) return false;
         if (args.length == 0) return false;
         switch (args[0]) {
         case "locate": {
             int x = player.getLocation().getBlockX();
             int z = player.getLocation().getBlockZ();
-            for (Manager manager: managers) {
-                if (!manager.dungeonWorld.getWorldName().equals(player.getWorld().getName())) continue;
-                DungeonWorld.PersistentDungeon nearestDungeon = manager.dungeonWorld.findNearestDungeon(player.getLocation());
-                if (nearestDungeon != null) {
-                    player.sendMessage("Nearest dungeon at "
-                                       + ((nearestDungeon.lo.get(0) + nearestDungeon.hi.get(0)) / 2) + ","
-                                       + ((nearestDungeon.lo.get(1) + nearestDungeon.hi.get(1)) / 2) + ","
-                                       + ((nearestDungeon.lo.get(2) + nearestDungeon.hi.get(2)) / 2)
-                                       + " named " + nearestDungeon.name);
-                } else {
-                    player.sendMessage("No dungeon found");
-                }
+            Manager manager = managerOf(player.getWorld());
+            if (manager == null) {
+                player.sendMessage("This world does not spawn dungeons.");
                 return true;
             }
-            player.sendMessage("This world does not spawn dungeons.");
+            Dungeon nearestDungeon = manager.dungeonWorld.findNearestDungeon(player.getLocation(), false);
+            if (nearestDungeon == null) {
+                player.sendMessage("No dungeon found");
+            } else {
+                player.sendMessage("Nearest dungeon: " + nearestDungeon.toString());
+            }
+            return true;
+        }
+        case "info": {
+            Manager manager = managerOf(player.getWorld());
+            if (manager == null) {
+                player.sendMessage("This world does not spawn dungeons.");
+                return true;
+            }
+            Dungeon dungeon = manager.dungeonWorld.findDungeonAt(player.getLocation().getBlock());
+            if (dungeon == null) {
+                player.sendMessage("There is no dungeon here");
+            } else {
+                player.sendMessage("Current dungeon: " + dungeon.toString());
+            }
             return true;
         }
         default: return false;

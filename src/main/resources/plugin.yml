@@ -12,7 +12,8 @@ commands:
     description: Dungeons
     permission: dungeons.dungeons
     usage: |-
-      /dungeons locate
+      /dungeons locate - Locate nearest
+      /dungeons info - Current dungeon info
 permissions:
   dungeons.dungeons:
     description: Use /dungeons

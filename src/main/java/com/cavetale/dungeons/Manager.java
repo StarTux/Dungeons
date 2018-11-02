@@ -41,20 +41,27 @@ final class Manager implements Listener {
         if (event.getHand() != EquipmentSlot.HAND) return;
         Block block = event.getClickedBlock();
         if (block == null) return;
-        if (!block.getWorld().getName().equals(dungeonWorld.worldName)) return;
+        if (!block.getWorld().getName().equals(this.dungeonWorld.worldName)) return;
         BlockState state = block.getState();
         if (!(state instanceof Chest)) return;
         Chest chest = (Chest)state;
+        Dungeon dungeon = this.dungeonWorld.findDungeonAt(block);
+        if (dungeon == null) return;
         Player player = event.getPlayer();
-        if (chest.getLootTable() == null) return;
-        String lootTable = chest.getLootTable().getKey().toString();
-        if (lootTable.equals(dungeonWorld.lootTable)) {
+        if (chest.getLootTable() != null
+            && chest.getLootTable().getKey() != null
+            && chest.getLootTable().getKey().toString().equals(this.dungeonWorld.lootTable)) {
             NamespacedKey newKey = NamespacedKey.minecraft("chests/simple_dungeon");
             LootTable newLootTable = Bukkit.getServer().getLootTable(newKey);
             chest.setLootTable(newLootTable);
             chest.update();
-            DungeonLootEvent dungeonLootEvent = new DungeonLootEvent(block, chest.getInventory(), player);
+            DungeonLootEvent dungeonLootEvent = new DungeonLootEvent(block, chest.getInventory(), player, dungeon);
             Bukkit.getPluginManager().callEvent(dungeonLootEvent);
+        }
+        // Update dungeon raided state
+        if (dungeon != null && !dungeon.isRaided()) {
+            dungeon.setRaided(true);
+            this.dungeonWorld.savePersistence();
         }
     }
 
@@ -69,7 +76,7 @@ final class Manager implements Listener {
         ItemStack item = event.getItem();
         if (item == null || item.getType() != Material.COMPASS) return;
         Location location = player.getLocation();
-        DungeonWorld.PersistentDungeon dungeon = dungeonWorld.findNearestDungeon(location);
+        Dungeon dungeon = dungeonWorld.findNearestDungeon(location, true);
         if (dungeon == null) return;
         if (dungeon.hi.get(1) < location.getBlockY()) {
             player.sendMessage(ChatColor.RED + "You are too high up to locate dungeons.");

@@ -9,10 +9,10 @@ import java.util.List;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 
 @Getter @RequiredArgsConstructor
 final class DungeonWorld {
@@ -21,15 +21,9 @@ final class DungeonWorld {
     final String lootTable;
     Persistence persistence = new Persistence();
 
-    @Value
-    static class PersistentDungeon {
-        public final String name;
-        public final List<Integer> lo, hi;
-    }
-
     @Data
     static class Persistence {
-        List<PersistentDungeon> dungeons = new ArrayList<>();
+        List<Dungeon> dungeons = new ArrayList<>();
     }
 
     void loadPersistence() {
@@ -65,12 +59,30 @@ final class DungeonWorld {
             });
     }
 
-    PersistentDungeon findNearestDungeon(Location location) {
+    Dungeon findDungeonAt(Block block) {
+        int x = block.getX();
+        int y = block.getY();
+        int z = block.getZ();
+        for (Dungeon dungeon: this.persistence.getDungeons()) {
+            if (x >= dungeon.lo.get(0)
+                && y >= dungeon.lo.get(1)
+                && z >= dungeon.lo.get(2)
+                && x <= dungeon.hi.get(0)
+                && y <= dungeon.hi.get(1)
+                && z <= dungeon.hi.get(2)) {
+                return dungeon;
+            }
+        }
+        return null;
+    }
+
+    Dungeon findNearestDungeon(Location location, boolean unraidedOnly) {
         int x = location.getBlockX();
         int z = location.getBlockZ();
-        PersistentDungeon nearestDungeon = null;
+        Dungeon nearestDungeon = null;
         int minDist = 0;
-        for (PersistentDungeon dungeon: this.persistence.getDungeons()) {
+        for (Dungeon dungeon: this.persistence.getDungeons()) {
+            if (unraidedOnly && dungeon.isRaided()) continue;
             int dist = Math.max(Math.abs(dungeon.lo.get(0) - x), Math.abs(dungeon.lo.get(2) - z));
             if (nearestDungeon == null || dist < minDist) {
                 nearestDungeon = dungeon;

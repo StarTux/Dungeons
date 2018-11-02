@@ -13,6 +13,8 @@ public final class DungeonLootEvent extends Event {
     private final Block block;
     private final Inventory inventory;
     private final Player player;
+    // Dungeon.isRaided() will yield the value from before this event.
+    private final Dungeon dungeon;
 
     // Event Stuff
     @Getter private static HandlerList handlerList = new HandlerList();
