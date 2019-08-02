@@ -150,26 +150,38 @@ final class Generator implements Listener {
                 }
             }
         }
-        dungeon.clip.paste(origin, (block, vec, data, tag) -> {
-                if (!block.isEmpty() && !block.getType().isSolid()) return true;
-                if (data.getMaterial() == Material.SPAWNER) {
-                    tag.putAll(this.spawnerTag);
+        dungeonIndex += 1;
+        this.dungeonWorld.plugin.getLogger()
+            .info(chunk.getWorld().getName() + ": Pasting dungeon "
+                  + dungeon.name + " at "
+                  + (ox + ux / 2) + ","
+                  + (oy + uy / 2) + ","
+                  + (oz + uz / 2) + "...");
+        try {
+            dungeon.clip.paste(origin, (block, vec, data, tag) -> {
+                    if (!block.isEmpty() && !block.getType().isSolid()) {
+                        return true;
+                    }
+                    if (data.getMaterial() == Material.SPAWNER) {
+                        tag.putAll(this.spawnerTag);
+                        return true;
+                    }
+                    if (data instanceof org.bukkit.block.data.type.Chest) {
+                        tag.putAll(this.chestTag);
+                        return true;
+                    }
                     return true;
-                }
-                if (data instanceof org.bukkit.block.data.type.Chest) {
-                    tag.putAll(this.chestTag);
-                    return true;
-                }
-                return true;
-            });
+                });
+        } catch (IllegalArgumentException iae) {
+            iae.printStackTrace();
+            return false;
+        }
         Dungeon pd;
         pd = new Dungeon(dungeon.name,
                          Arrays.asList(ox, oy, oz),
                          Arrays.asList(ox + ux, oy + uy, oz + uz));
         this.dungeonWorld.persistence.dungeons.add(pd);
         this.dungeonWorld.savePersistence();
-        this.dungeonWorld.plugin.getLogger().info(chunk.getWorld().getName() + ": Dungeon " + dungeon.name + " pasted at " + (ox + ux / 2) + "," + (oy + uy / 2) + "," + (oz + uz / 2));
-        dungeonIndex += 1;
         return true;
     }
 }
