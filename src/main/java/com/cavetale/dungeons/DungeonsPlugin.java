@@ -1,6 +1,11 @@
 package com.cavetale.dungeons;
 
 import java.util.ArrayList;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -64,11 +69,21 @@ public final class DungeonsPlugin extends JavaPlugin {
                 player.sendMessage("This world does not spawn dungeons.");
                 return true;
             }
-            Dungeon nearestDungeon = manager.dungeonWorld.findNearestDungeon(player.getLocation(), false);
-            if (nearestDungeon == null) {
+            Dungeon nearest = manager.dungeonWorld.findNearestDungeon(player.getLocation(), false);
+            if (nearest == null) {
                 player.sendMessage("No dungeon found");
             } else {
-                player.sendMessage("Nearest dungeon: " + nearestDungeon.toString());
+                ComponentBuilder cb = new ComponentBuilder("Nearest dungeon: "
+                                                           + nearest.toString());
+                cb.color(ChatColor.YELLOW);
+                int dx = (nearest.lo.get(0) + nearest.hi.get(0)) / 2;
+                int dy = (nearest.lo.get(1) + nearest.hi.get(1)) / 2;
+                int dz = (nearest.lo.get(2) + nearest.hi.get(2)) / 2;
+                String cmd = "/tp " + dx + " " + dy + " " + dz;
+                cb.event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, cmd));
+                cb.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                                        TextComponent.fromLegacyText(cmd)));
+                player.sendMessage(cb.create());
             }
             return true;
         }
