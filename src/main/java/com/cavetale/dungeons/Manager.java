@@ -153,7 +153,7 @@ final class Manager implements Listener {
                         //StructureType.VILLAGE,
                         StructureType.WOODLAND_MANSION);
             Collections.shuffle(list, random);
-            int radius = 1024;
+            int radius = 512;
             boolean findUnexplored = true;
             World world = chest.getBlock().getWorld();
             Location loc = chest.getBlock().getLocation();
@@ -168,9 +168,18 @@ final class Manager implements Listener {
                 }
             }
             if (structureType == null) return;
-            item = dungeonWorld.plugin.getServer()
-                .createExplorerMap(world, loc,
-                                   structureType, radius, findUnexplored);
+            try {
+                item = dungeonWorld.plugin.getServer()
+                    .createExplorerMap(world, loc,
+                                       structureType, radius, findUnexplored);
+            } catch (Exception e) {
+                dungeonWorld.plugin.getLogger()
+                    .warning("createExplorerMap: " + structureType
+                             + " radius=" + radius
+                             + " findUnexplored=" + findUnexplored);
+                e.printStackTrace();
+                return;
+            }
             if (item == null) return;
             ItemMeta meta = item.getItemMeta();
             meta.setDisplayName(Stream.of(structureType.getName().split("_"))
