@@ -27,33 +27,35 @@ final class DungeonWorld {
     }
 
     void loadPersistence() {
-        World world = Bukkit.getWorld(this.worldName);
-        if (world == null) throw new IllegalStateException("World not loaded: " + this.worldName);
+        World world = Bukkit.getWorld(worldName);
+        if (world == null) throw new IllegalStateException("World not loaded: " + worldName);
         File file = new File(world.getWorldFolder(), "dungeons.json");
         if (!file.isFile()) {
-            this.persistence = new Persistence();
+            persistence = new Persistence();
             return;
         }
         Gson gson = new Gson();
         try (FileReader fileReader = new FileReader(file)) {
             Persistence p = gson.fromJson(fileReader, Persistence.class);
-            if (p != null) this.persistence = p;
+            if (p != null) persistence = p;
         } catch (Exception e) {
-            this.plugin.getLogger().warning("Error loading persistence from " + file);
+            plugin.getLogger().warning("Error loading persistence from " + file);
             e.printStackTrace();
             return;
         }
     }
 
     void savePersistence() {
-        World world = Bukkit.getWorld(this.worldName);
+        World world = Bukkit.getWorld(worldName);
         final File file = new File(world.getWorldFolder(), "dungeons.json");
         final Gson gson = new Gson();
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
                 try (FileWriter fileWriter = new FileWriter(file)) {
-                    gson.toJson(this.persistence, fileWriter);
+                    gson.toJson(persistence, fileWriter);
                 } catch (Exception e) {
-                    this.plugin.getLogger().warning("Error saving persistence to " + file + ": " + this.persistence);
+                    plugin.getLogger()
+                        .warning("Error saving persistence to "
+                                 + file + ": " + persistence);
                     return;
                 }
             });
@@ -63,7 +65,7 @@ final class DungeonWorld {
         int x = block.getX();
         int y = block.getY();
         int z = block.getZ();
-        for (Dungeon dungeon: this.persistence.getDungeons()) {
+        for (Dungeon dungeon: persistence.getDungeons()) {
             if (x >= dungeon.lo.get(0)
                 && y >= dungeon.lo.get(1)
                 && z >= dungeon.lo.get(2)
@@ -81,7 +83,7 @@ final class DungeonWorld {
         int z = location.getBlockZ();
         Dungeon nearestDungeon = null;
         int minDist = 0;
-        for (Dungeon dungeon: this.persistence.getDungeons()) {
+        for (Dungeon dungeon: persistence.getDungeons()) {
             if (unraidedOnly && dungeon.isRaided()) continue;
             int dist = Math.max(Math.abs(dungeon.lo.get(0) - x), Math.abs(dungeon.lo.get(2) - z));
             if (nearestDungeon == null || dist < minDist) {

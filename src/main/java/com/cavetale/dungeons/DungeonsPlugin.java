@@ -30,14 +30,17 @@ public final class DungeonsPlugin extends JavaPlugin {
             Manager manager = new Manager(dungeonWorld);
             getServer().getPluginManager().registerEvents(manager, this);
             managers.add(manager);
-            getLogger().info("Manager enabled for world \"" + worldName + "\" lootTable=" + lootTable);
+            getLogger().info("Manager enabled for world \""
+                             + worldName + "\" lootTable=" + lootTable);
             if (getConfig().getBoolean("generate")) {
                 Generator generator = new Generator(dungeonWorld, margin);
                 int dc = generator.loadDungeons();
                 generator.loadTags();
                 getServer().getPluginManager().registerEvents(generator, this);
                 generators.add(generator);
-                getLogger().info("Generator enabled for world \"" + worldName + "\", dungeons=" + dc + " margin=" + margin);
+                getLogger().info("Generator enabled for world \""
+                                 + worldName + "\", dungeons=" + dc
+                                 + " margin=" + margin);
             }
         }
     }
@@ -57,7 +60,7 @@ public final class DungeonsPlugin extends JavaPlugin {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String alias, String[] args) {
-        Player player = sender instanceof Player ? (Player)sender : null;
+        Player player = sender instanceof Player ? (Player) sender : null;
         if (player == null) return false;
         if (args.length == 0) return false;
         switch (args[0]) {

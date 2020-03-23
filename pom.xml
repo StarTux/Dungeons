@@ -1,22 +1,21 @@
 <project>
   <modelVersion>4.0.0</modelVersion>
+
   <groupId>com.cavetale.dungeons</groupId>
   <artifactId>dungeons</artifactId>
-  <packaging>jar</packaging>
   <version>0.1-SNAPSHOT</version>
+
   <name>Dungeons</name>
+  <packaging>jar</packaging>
   <url>https://cavetale.com</url>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   <build>
     <finalName>${project.name}</finalName>
     <plugins>
-      <!-- Surefire for Testing -->
-      <plugin>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.22.0</version>
-      </plugin>
+
       <!-- Java 8 -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -32,14 +31,17 @@
           </compilerArgs>
         </configuration>
       </plugin>
+
     </plugins>
   </build>
   <repositories>
+
     <!-- Paper Repo -->
     <repository>
       <id>papermc</id>
       <url>https://papermc.io/repo/repository/maven-public/</url>
     </repository>
+
     <!-- Cavetale Repo -->
     <repository>
       <id>cavetale</id>
@@ -47,13 +49,15 @@
     </repository>
   </repositories>
   <dependencies>
+
     <!-- Paper-API -->
     <dependency>
       <groupId>com.destroystokyo.paper</groupId>
       <artifactId>paper-api</artifactId>
-      <version>1.13.2-R0.1-SNAPSHOT</version>
+      <version>1.15.2-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
+
     <!-- Lombok -->
     <dependency>
       <groupId>org.projectlombok</groupId>
@@ -61,6 +65,7 @@
       <version>1.18.2</version>
       <scope>provided</scope>
     </dependency>
+
     <!-- BlockClip -->
     <dependency>
       <groupId>com.cavetale.blockclip</groupId>
@@ -68,5 +73,6 @@
       <version>0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
+
   </dependencies>
 </project>

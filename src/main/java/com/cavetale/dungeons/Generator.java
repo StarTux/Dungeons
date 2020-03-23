@@ -29,7 +29,8 @@ final class Generator implements Listener {
     final int margin;
     private ArrayList<DungeonClip> dungeons = new ArrayList<>();
     private int dungeonIndex = 0;
-    private Map<String, Object> chestTag, spawnerTag;
+    private Map<String, Object> chestTag;
+    private Map<String, Object> spawnerTag;
     private final Random random = new Random(System.nanoTime());
 
     @Value
@@ -41,7 +42,7 @@ final class Generator implements Listener {
     int loadDungeons() {
         ArrayList<DungeonClip> ls = new ArrayList<>();
         HashSet<String> tags = new HashSet<>();
-        File dir = new File(this.dungeonWorld.plugin.getDataFolder(), "dungeons");
+        File dir = new File(dungeonWorld.plugin.getDataFolder(), "dungeons");
         dir.mkdirs();
         for (File file: dir.listFiles()) {
             String name = file.getName();
@@ -50,34 +51,38 @@ final class Generator implements Listener {
             try {
                 BlockClip clip = BlockClip.load(file);
                 if (clip.getMetadata().containsKey("tags")) {
-                    tags.addAll((List<String>)clip.getMetadata().get("tags"));
+                    tags.addAll((List<String>) clip.getMetadata().get("tags"));
                 }
                 ls.add(new DungeonClip(name, clip));
             } catch (Exception e) {
-                this.dungeonWorld.plugin.getLogger().warning("Error loading " + file);
+                dungeonWorld.plugin.getLogger().warning("Error loading " + file);
                 e.printStackTrace();
             }
         }
         System.out.println("Tags: " + tags);
-        if (ls.isEmpty()) this.dungeonWorld.plugin.getLogger().warning("No dungeons loaded!");
-        this.dungeons = ls;
-        Collections.shuffle(this.dungeons, this.random);
+        if (ls.isEmpty()) dungeonWorld.plugin.getLogger().warning("No dungeons loaded!");
+        dungeons = ls;
+        Collections.shuffle(dungeons, random);
         return ls.size();
     }
 
     void loadTags() {
         Gson gson = new Gson();
-        try (FileReader reader = new FileReader(new File(new File(this.dungeonWorld.plugin.getDataFolder(), "data"), "chest_tag.json"))) {
-            this.chestTag = gson.fromJson(reader, Map.class);
+        File file = new File(dungeonWorld.plugin.getDataFolder(), "data");
+        file = new File(file, "chest_tag.json");
+        try (FileReader reader = new FileReader(file)) {
+            chestTag = gson.fromJson(reader, Map.class);
         } catch (Exception e) {
             e.printStackTrace();
-            this.chestTag = new HashMap<>();
+            chestTag = new HashMap<>();
         }
-        try (FileReader reader = new FileReader(new File(new File(this.dungeonWorld.plugin.getDataFolder(), "data"), "spawner_tag.json"))) {
-            this.spawnerTag = gson.fromJson(reader, Map.class);
+        file = new File(dungeonWorld.plugin.getDataFolder(), "data");
+        file = new File(file, "spawner_tag.json");
+        try (FileReader reader = new FileReader(file)) {
+            spawnerTag = gson.fromJson(reader, Map.class);
         } catch (Exception e) {
             e.printStackTrace();
-            this.spawnerTag = new HashMap<>();
+            spawnerTag = new HashMap<>();
         }
         System.out.println(gson.toJson(chestTag));
         System.out.println(gson.toJson(spawnerTag));
@@ -87,8 +92,8 @@ final class Generator implements Listener {
     public void onChunkPopulate(ChunkPopulateEvent event) {
         if (dungeons.isEmpty()) return;
         Chunk chunk = event.getChunk();
-        if (!chunk.getWorld().getName().equals(this.dungeonWorld.worldName)) return;
-        Bukkit.getScheduler().runTask(this.dungeonWorld.plugin, () -> trySpawnDungeon(chunk));
+        if (!chunk.getWorld().getName().equals(dungeonWorld.worldName)) return;
+        Bukkit.getScheduler().runTask(dungeonWorld.plugin, () -> trySpawnDungeon(chunk));
     }
 
     boolean trySpawnDungeon(Chunk chunk) {
@@ -112,7 +117,7 @@ final class Generator implements Listener {
 
     boolean trySpawnDungeon(Chunk chunk, int ox, int oy, int oz) {
         // Check proximity
-        for (Dungeon pd: this.dungeonWorld.persistence.dungeons) {
+        for (Dungeon pd: dungeonWorld.persistence.dungeons) {
             int ax = pd.lo.get(0) - margin;
             int bx = pd.hi.get(0) + margin;
             int az = pd.lo.get(2) - margin;
@@ -122,7 +127,7 @@ final class Generator implements Listener {
         // Pick dungeon
         Block origin = chunk.getWorld().getBlockAt(ox, oy, oz);
         if (dungeonIndex >= dungeons.size()) dungeonIndex = 0;
-        DungeonClip dungeon = this.dungeons.get(dungeonIndex);
+        DungeonClip dungeon = dungeons.get(dungeonIndex);
         // Size - 1
         final int ux = dungeon.clip.size().x - 1;
         final int uy = dungeon.clip.size().y - 1;
@@ -151,7 +156,7 @@ final class Generator implements Listener {
             }
         }
         dungeonIndex += 1;
-        this.dungeonWorld.plugin.getLogger()
+        dungeonWorld.plugin.getLogger()
             .info(chunk.getWorld().getName() + ": Pasting dungeon "
                   + dungeon.name + " at "
                   + (ox + ux / 2) + ","
@@ -163,11 +168,11 @@ final class Generator implements Listener {
                         return true;
                     }
                     if (data.getMaterial() == Material.SPAWNER) {
-                        tag.putAll(this.spawnerTag);
+                        tag.putAll(spawnerTag);
                         return true;
                     }
                     if (data instanceof org.bukkit.block.data.type.Chest) {
-                        tag.putAll(this.chestTag);
+                        tag.putAll(chestTag);
                         return true;
                     }
                     return true;
@@ -180,8 +185,8 @@ final class Generator implements Listener {
         pd = new Dungeon(dungeon.name,
                          Arrays.asList(ox, oy, oz),
                          Arrays.asList(ox + ux, oy + uy, oz + uz));
-        this.dungeonWorld.persistence.dungeons.add(pd);
-        this.dungeonWorld.savePersistence();
+        dungeonWorld.persistence.dungeons.add(pd);
+        dungeonWorld.savePersistence();
         return true;
     }
 }

@@ -10,15 +10,16 @@ import lombok.Data;
 @Data
 public final class Dungeon {
     public final String name;
-    public final List<Integer> lo, hi;
+    public final List<Integer> lo;
+    public final List<Integer> hi;
     private boolean raided = false;
 
     @Override
     public String toString() {
-        return this.name
-            + "(" + this.lo.get(0) + "," + this.lo.get(1) + "," + this.lo.get(2)
-            + ")-(" + this.hi.get(0) + "," + this.hi.get(1) + "," + this.hi.get(2)
-            + ") raided=" + this.raided;
+        return name
+            + "(" + lo.get(0) + "," + lo.get(1) + "," + lo.get(2)
+            + ")-(" + hi.get(0) + "," + hi.get(1) + "," + hi.get(2)
+            + ") raided=" + raided;
     }
 }
 
