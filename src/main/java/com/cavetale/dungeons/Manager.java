@@ -141,10 +141,9 @@ final class Manager implements Listener {
         case 2: {
             // Treasure Map
             List<StructureType> list = Arrays
-                .asList(StructureType.BURIED_TREASURE,
-                        StructureType.OCEAN_MONUMENT);
-            Collections.shuffle(list, random);
-            int radius = 512;
+                .asList(StructureType.OCEAN_MONUMENT,
+                        StructureType.BURIED_TREASURE);
+            int radius = 1024;
             boolean findUnexplored = true;
             World world = chest.getBlock().getWorld();
             Location loc = chest.getBlock().getLocation();
