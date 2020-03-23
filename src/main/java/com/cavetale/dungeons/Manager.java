@@ -188,7 +188,9 @@ final class Manager implements Listener {
                                 .collect(Collectors.joining(" ")));
             item.setItemMeta(meta);
             dungeonWorld.plugin.getLogger()
-                .info("Bonus item: Treasure map: " + structureType.getName());
+                .info("Bonus item: Treasure map: " + structureType.getName()
+                      + " type=" + item.getType()
+                      + " amount=" + item.getAmount());
         }
         default: return;
         }
