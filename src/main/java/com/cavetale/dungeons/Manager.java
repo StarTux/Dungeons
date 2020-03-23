@@ -142,16 +142,7 @@ final class Manager implements Listener {
             // Treasure Map
             List<StructureType> list = Arrays
                 .asList(StructureType.BURIED_TREASURE,
-                        //StructureType.DESERT_PYRAMID,
-                        //StructureType.IGLOO,
-                        //StructureType.JUNGLE_PYRAMID,
-                        StructureType.OCEAN_MONUMENT,
-                        //StructureType.OCEAN_RUIN,
-                        StructureType.PILLAGER_OUTPOST,
-                        StructureType.SHIPWRECK,
-                        //StructureType.SWAMP_HUT,
-                        //StructureType.VILLAGE,
-                        StructureType.WOODLAND_MANSION);
+                        StructureType.OCEAN_MONUMENT);
             Collections.shuffle(list, random);
             int radius = 512;
             boolean findUnexplored = true;
@@ -188,9 +179,8 @@ final class Manager implements Listener {
                                 .collect(Collectors.joining(" ")));
             item.setItemMeta(meta);
             dungeonWorld.plugin.getLogger()
-                .info("Bonus item: Treasure map: " + structureType.getName()
-                      + " type=" + item.getType()
-                      + " amount=" + item.getAmount());
+                .info("Bonus item: Treasure map: " + structureType.getName());
+            break;
         }
         default: return;
         }
