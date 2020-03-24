@@ -115,10 +115,19 @@ final class Manager implements Listener {
             }
             map.put(Material.ENCHANTED_GOLDEN_APPLE, 1);
             map.put(Material.WITHER_ROSE, 32);
+            map.put(Material.SPONGE, 4);
+            map.put(Material.WET_SPONGE, 4);
+            map.put(Material.HEART_OF_THE_SEA, 1);
+            map.put(Material.NAUTILUS_SHELL, 8);
+            map.put(Material.NETHER_STAR, 1);
+            map.put(Material.WITHER_SKELETON_SKULL, 1);
+            map.put(Material.DRAGON_EGG, 1);
+            map.put(Material.SHULKER_SHELL, 4);
+            map.put(Material.SCUTE, 5);
             List<Material> list = new ArrayList<>(map.keySet());
             Material mat = list.get(random.nextInt(list.size()));
             int amount = map.get(mat);
-            if (amount > 1) amount -= random.nextInt(amount / 2);
+            if (amount > 1) amount -= random.nextInt(amount);
             item = new ItemStack(mat, amount);
             dungeonWorld.plugin.getLogger()
                 .info("Bonus item: " + mat + "x" + amount);
@@ -129,7 +138,6 @@ final class Manager implements Listener {
             List<Enchantment> list = Arrays.asList(Enchantment.values());
             Enchantment ench = list.get(random.nextInt(list.size()));
             int level = ench.getMaxLevel();
-            if (level > 1) level = 1 + random.nextInt(level - 1);
             item = new ItemStack(Material.ENCHANTED_BOOK);
             EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
             meta.addStoredEnchant(ench, level, true);
