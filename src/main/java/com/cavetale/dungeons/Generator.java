@@ -20,6 +20,7 @@ import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkPopulateEvent;
 
@@ -88,7 +89,7 @@ final class Generator implements Listener {
         System.out.println(gson.toJson(spawnerTag));
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onChunkPopulate(ChunkPopulateEvent event) {
         if (dungeons.isEmpty()) return;
         Chunk chunk = event.getChunk();
