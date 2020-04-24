@@ -74,5 +74,13 @@
       <scope>provided</scope>
     </dependency>
 
+    <!-- Decorator -->
+    <dependency>
+      <groupId>com.winthier.decorator</groupId>
+      <artifactId>decorator</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+
   </dependencies>
 </project>

@@ -2,6 +2,7 @@ package com.cavetale.dungeons;
 
 import com.cavetale.blockclip.BlockClip;
 import com.google.gson.Gson;
+import com.winthier.decorator.DecoratorEvent;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
@@ -22,7 +23,6 @@ import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.world.ChunkPopulateEvent;
 
 @Getter @RequiredArgsConstructor
 final class Generator implements Listener {
@@ -90,7 +90,7 @@ final class Generator implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onChunkPopulate(ChunkPopulateEvent event) {
+    public void onDecorator(DecoratorEvent event) {
         if (dungeons.isEmpty()) return;
         Chunk chunk = event.getChunk();
         if (!chunk.getWorld().getName().equals(dungeonWorld.worldName)) return;
