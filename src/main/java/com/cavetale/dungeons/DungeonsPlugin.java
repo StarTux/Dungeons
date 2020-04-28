@@ -27,11 +27,13 @@ public final class DungeonsPlugin extends JavaPlugin {
         for (String worldName: getConfig().getStringList("worlds")) {
             DungeonWorld dungeonWorld = new DungeonWorld(this, worldName, lootTable);
             dungeonWorld.loadPersistence();
-            Manager manager = new Manager(dungeonWorld);
-            getServer().getPluginManager().registerEvents(manager, this);
-            managers.add(manager);
-            getLogger().info("Manager enabled for world \""
-                             + worldName + "\" lootTable=" + lootTable);
+            if (getConfig().getBoolean("manage")) {
+                Manager manager = new Manager(dungeonWorld);
+                getServer().getPluginManager().registerEvents(manager, this);
+                managers.add(manager);
+                getLogger().info("Manager enabled for world \""
+                                 + worldName + "\" lootTable=" + lootTable);
+            }
             if (getConfig().getBoolean("generate")) {
                 Generator generator = new Generator(dungeonWorld, margin);
                 int dc = generator.loadDungeons();

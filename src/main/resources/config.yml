@@ -1,4 +1,5 @@
 generate: false
+manage: false
 worlds: [mine]
 margin: 192
 loot_table: 'cavetale:chests/dungeon'
