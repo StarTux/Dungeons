@@ -60,7 +60,6 @@ final class Generator implements Listener {
                 e.printStackTrace();
             }
         }
-        System.out.println("Tags: " + tags);
         if (ls.isEmpty()) dungeonWorld.plugin.getLogger().warning("No dungeons loaded!");
         dungeons = ls;
         Collections.shuffle(dungeons, random);
@@ -85,8 +84,6 @@ final class Generator implements Listener {
             e.printStackTrace();
             spawnerTag = new HashMap<>();
         }
-        System.out.println(gson.toJson(chestTag));
-        System.out.println(gson.toJson(spawnerTag));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

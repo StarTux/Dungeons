@@ -53,9 +53,8 @@ final class DungeonWorld {
                 try (FileWriter fileWriter = new FileWriter(file)) {
                     gson.toJson(persistence, fileWriter);
                 } catch (Exception e) {
-                    plugin.getLogger()
-                        .warning("Error saving persistence to "
-                                 + file + ": " + persistence);
+                    plugin.getLogger().warning("Error saving persistence to " + file);
+                    e.printStackTrace();
                     return;
                 }
             });
