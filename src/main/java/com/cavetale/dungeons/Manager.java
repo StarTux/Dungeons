@@ -90,11 +90,11 @@ final class Manager implements Listener {
             dungeon.setRaided(true);
             dungeonWorld.savePersistence();
             dungeonWorld.plugin.getServer().getScheduler()
-                .runTask(dungeonWorld.plugin, () -> addBonusLoot(chest));
+                .runTask(dungeonWorld.plugin, () -> addBonusLoot(chest, player));
         }
     }
 
-    void addBonusLoot(Chest chest) {
+    void addBonusLoot(Chest chest, Player player) {
         Random random = ThreadLocalRandom.current();
         Inventory inv = chest.getInventory();
         List<Integer> slots = new ArrayList<>(inv.getSize());
@@ -112,6 +112,8 @@ final class Manager implements Listener {
             if (random.nextDouble() < specialChance) {
                 int slot2 = slots.get(1);
                 inv.setItem(slot2, specialItem.clone());
+                String cmd = "ml add " + player.getName();
+                Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), cmd);
             }
         }
         final ItemStack item;
