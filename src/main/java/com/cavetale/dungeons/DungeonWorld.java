@@ -3,9 +3,10 @@ package com.cavetale.dungeons;
 import com.google.gson.Gson;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ final class DungeonWorld {
     final String worldName;
     final String lootTable;
     Persistence persistence = new Persistence();
+    final Gson gson = new Gson();
 
     @Data
     static class Persistence {
@@ -34,7 +36,6 @@ final class DungeonWorld {
             persistence = new Persistence();
             return;
         }
-        Gson gson = new Gson();
         try (FileReader fileReader = new FileReader(file)) {
             Persistence p = gson.fromJson(fileReader, Persistence.class);
             if (p != null) persistence = p;
@@ -47,14 +48,18 @@ final class DungeonWorld {
 
     void savePersistence() {
         World world = Bukkit.getWorld(worldName);
+        File dir = world.getWorldFolder();
         final File file = new File(world.getWorldFolder(), "dungeons.json");
-        final Gson gson = new Gson();
+        final String json = gson.toJson(persistence);
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                try (FileWriter fileWriter = new FileWriter(file)) {
-                    gson.toJson(persistence, fileWriter);
+                try {
+                    File tmpFile = File.createTempFile("tmp", ".json", dir);
+                    try (PrintStream printStream = new PrintStream(tmpFile)) {
+                        printStream.print(json);
+                        tmpFile.renameTo(file);
+                    }
                 } catch (Exception e) {
-                    plugin.getLogger().warning("Error saving persistence to " + file);
-                    e.printStackTrace();
+                    plugin.getLogger().log(Level.SEVERE, "Error saving persistence to " + file, e);
                     return;
                 }
             });

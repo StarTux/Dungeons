@@ -39,6 +39,8 @@ import org.bukkit.loot.LootTable;
 @Getter @RequiredArgsConstructor
 final class Manager implements Listener {
     final DungeonWorld dungeonWorld;
+    ItemStack specialItem;
+    double specialChance;
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {

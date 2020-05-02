@@ -10,6 +10,7 @@ import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class DungeonsPlugin extends JavaPlugin {
@@ -104,6 +105,50 @@ public final class DungeonsPlugin extends JavaPlugin {
             } else {
                 player.sendMessage("Current dungeon: " + dungeon.toString());
             }
+            return true;
+        }
+        case "special": {
+            if (managers.isEmpty()) {
+                sender.sendMessage("No managers loaded :(");
+            }
+            if (args.length == 1) {
+                for (Manager manager : managers) {
+                    if (manager.specialItem == null) {
+                        sender.sendMessage(manager.dungeonWorld.worldName
+                                           + ": No special item");
+                    } else {
+                        sender.sendMessage(manager.dungeonWorld.worldName
+                                           + manager.specialItem.getType()
+                                           + "x" + manager.specialItem.getAmount()
+                                           + " " + (manager.specialChance * 100.0) + "%");
+                    }
+                }
+            }
+            if (args.length > 2) return false;
+            int intChance = 100;
+            double chance = 1.0;
+            if (args.length >= 2) {
+                intChance = Integer.parseInt(args[1]);
+                chance = (double) intChance * 0.01;
+            }
+            if (intChance == 0) {
+                for (Manager manager : managers) {
+                    manager.specialItem = null;
+                    manager.specialChance = 0;
+                }
+                sender.sendMessage("Special item removed.");
+                return true;
+            }
+            if (player == null) {
+                sender.sendMessage("Player expected");
+                return true;
+            }
+            ItemStack item = player.getInventory().getItemInMainHand();
+            for (Manager manager : managers) {
+                manager.specialItem = item.clone();
+                manager.specialChance = chance;
+            }
+            player.sendMessage("Special item set.");
             return true;
         }
         default: return false;

@@ -14,6 +14,8 @@ commands:
     usage: |-
       /dungeons locate - Locate nearest
       /dungeons info - Current dungeon info
+      /dungeons special - Print special item
+      /dungeons special <%chance> - Set special item from hand. 0 to disable.
 permissions:
   dungeons.dungeons:
     description: Use /dungeons
