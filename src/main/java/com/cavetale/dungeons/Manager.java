@@ -2,6 +2,7 @@ package com.cavetale.dungeons;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -105,7 +106,14 @@ final class Manager implements Listener {
             }
         }
         if (slots.isEmpty()) return;
-        final int slot = slots.get(random.nextInt(slots.size()));
+        Collections.shuffle(slots, random);
+        final int slot = slots.get(0);
+        if (slots.size() >= 2 && specialItem != null && specialItem.getAmount() > 0) {
+            if (random.nextDouble() < specialChance) {
+                int slot2 = slots.get(1);
+                inv.setItem(slot2, specialItem.clone());
+            }
+        }
         final ItemStack item;
         switch (random.nextInt(3)) {
         case 0: {
