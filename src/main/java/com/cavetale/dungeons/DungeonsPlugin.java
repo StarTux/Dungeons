@@ -118,11 +118,12 @@ public final class DungeonsPlugin extends JavaPlugin {
                                            + ": No special item");
                     } else {
                         sender.sendMessage(manager.dungeonWorld.worldName
-                                           + manager.specialItem.getType()
+                                           + ": " + manager.specialItem.getType()
                                            + "x" + manager.specialItem.getAmount()
                                            + " " + (manager.specialChance * 100.0) + "%");
                     }
                 }
+                return true;
             }
             if (args.length > 2) return false;
             int intChance = 100;
