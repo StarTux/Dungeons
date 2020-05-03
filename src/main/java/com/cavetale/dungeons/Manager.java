@@ -89,8 +89,7 @@ final class Manager implements Listener {
         if (dungeon != null && !dungeon.isRaided()) {
             dungeon.setRaided(true);
             dungeonWorld.savePersistence();
-            dungeonWorld.plugin.getServer().getScheduler()
-                .runTask(dungeonWorld.plugin, () -> addBonusLoot(chest, player));
+            addBonusLoot(chest, player);
         }
     }
 
