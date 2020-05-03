@@ -112,8 +112,6 @@ final class Manager implements Listener {
             if (random.nextDouble() < specialChance) {
                 int slot2 = slots.get(1);
                 inv.setItem(slot2, specialItem.clone());
-                String cmd = "ml add " + player.getName();
-                Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(), cmd);
             }
         }
         final ItemStack item;
