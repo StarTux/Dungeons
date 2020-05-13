@@ -1,6 +1,9 @@
 package com.cavetale.dungeons;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Level;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -9,6 +12,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -16,6 +20,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class DungeonsPlugin extends JavaPlugin {
     private final ArrayList<Generator> generators = new ArrayList<>();
     private final ArrayList<Manager> managers = new ArrayList<>();
+    ItemStack specialItem;
+    double specialChance;
+    File specialItemFile;
 
     @Override
     public void onEnable() {
@@ -29,6 +36,8 @@ public final class DungeonsPlugin extends JavaPlugin {
             DungeonWorld dungeonWorld = new DungeonWorld(this, worldName, lootTable);
             dungeonWorld.loadPersistence();
             if (getConfig().getBoolean("manage")) {
+                specialItemFile = new File(getDataFolder(), "specialItem.yml");
+                loadSpecialItem();
                 Manager manager = new Manager(dungeonWorld);
                 getServer().getPluginManager().registerEvents(manager, this);
                 managers.add(manager);
@@ -112,16 +121,12 @@ public final class DungeonsPlugin extends JavaPlugin {
                 sender.sendMessage("No managers loaded :(");
             }
             if (args.length == 1) {
-                for (Manager manager : managers) {
-                    if (manager.specialItem == null) {
-                        sender.sendMessage(manager.dungeonWorld.worldName
-                                           + ": No special item");
-                    } else {
-                        sender.sendMessage(manager.dungeonWorld.worldName
-                                           + ": " + manager.specialItem.getType()
-                                           + "x" + manager.specialItem.getAmount()
-                                           + " " + (manager.specialChance * 100.0) + "%");
-                    }
+                if (specialItem == null) {
+                    sender.sendMessage("No special item");
+                } else {
+                    sender.sendMessage("Special: " + specialItem.getType()
+                                       + "x" + specialItem.getAmount()
+                                       + " " + (specialChance * 100.0) + "%");
                 }
                 return true;
             }
@@ -133,10 +138,9 @@ public final class DungeonsPlugin extends JavaPlugin {
                 chance = (double) intChance * 0.01;
             }
             if (intChance == 0) {
-                for (Manager manager : managers) {
-                    manager.specialItem = null;
-                    manager.specialChance = 0;
-                }
+                specialItem = null;
+                specialChance = 0;
+                saveSpecialItem();
                 sender.sendMessage("Special item removed.");
                 return true;
             }
@@ -145,14 +149,32 @@ public final class DungeonsPlugin extends JavaPlugin {
                 return true;
             }
             ItemStack item = player.getInventory().getItemInMainHand();
-            for (Manager manager : managers) {
-                manager.specialItem = item.clone();
-                manager.specialChance = chance;
-            }
+            specialItem = item.clone();
+            specialChance = chance;
+            saveSpecialItem();
             player.sendMessage("Special item set.");
             return true;
-        }
+        } // case "special"
         default: return false;
+        } // switch (args[0])
+    } // onCommand
+
+    void loadSpecialItem() {
+        YamlConfiguration cfg = YamlConfiguration.loadConfiguration(specialItemFile);
+        specialItem = cfg.getItemStack("item");
+        specialChance = cfg.getDouble("chance");
+    }
+
+    void saveSpecialItem() {
+        YamlConfiguration cfg = new YamlConfiguration();
+        if (specialItem != null) {
+            cfg.set("item", specialItem);
+            cfg.set("chance", specialChance);
+        }
+        try {
+            cfg.save(specialItemFile);
+        } catch (IOException ioe) {
+            getLogger().log(Level.SEVERE, "Saving special item", ioe);
         }
     }
 }

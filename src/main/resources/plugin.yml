@@ -5,8 +5,8 @@ api-version: 1.13
 description: Spawn custom dungeons
 author: StarTux
 website: https://cavetale.com
-depend: [BlockClip]
-softdepend: [Decorator]
+depend: []
+softdepend: [Decorator, BlockClip]
 commands:
   dungeons:
     description: Dungeons

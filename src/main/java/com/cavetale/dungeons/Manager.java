@@ -40,8 +40,6 @@ import org.bukkit.loot.LootTable;
 @Getter @RequiredArgsConstructor
 final class Manager implements Listener {
     final DungeonWorld dungeonWorld;
-    ItemStack specialItem;
-    double specialChance;
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
@@ -107,8 +105,9 @@ final class Manager implements Listener {
         if (slots.isEmpty()) return;
         Collections.shuffle(slots, random);
         final int slot = slots.get(0);
+        ItemStack specialItem = dungeonWorld.plugin.specialItem;
         if (slots.size() >= 2 && specialItem != null && specialItem.getAmount() > 0) {
-            if (random.nextDouble() < specialChance) {
+            if (random.nextDouble() < dungeonWorld.plugin.specialChance) {
                 int slot2 = slots.get(1);
                 inv.setItem(slot2, specialItem.clone());
             }
