@@ -73,10 +73,13 @@ public final class DungeonsPlugin extends JavaPlugin {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String alias, String[] args) {
         Player player = sender instanceof Player ? (Player) sender : null;
-        if (player == null) return false;
         if (args.length == 0) return false;
         switch (args[0]) {
         case "locate": {
+            if (player == null) {
+                sender.sendMessage("Player expected");
+                return true;
+            }
             int x = player.getLocation().getBlockX();
             int z = player.getLocation().getBlockZ();
             Manager manager = managerOf(player.getWorld());
@@ -103,6 +106,10 @@ public final class DungeonsPlugin extends JavaPlugin {
             return true;
         }
         case "info": {
+            if (player == null) {
+                sender.sendMessage("Player expected");
+                return true;
+            }
             Manager manager = managerOf(player.getWorld());
             if (manager == null) {
                 player.sendMessage("This world does not spawn dungeons.");
