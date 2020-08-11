@@ -158,8 +158,8 @@ final class Manager implements Listener {
             List<StructureType> list = Arrays
                 .asList(StructureType.OCEAN_MONUMENT,
                         StructureType.BURIED_TREASURE);
-            int radius = 1024;
-            boolean findUnexplored = true;
+            int radius = 256;
+            boolean findUnexplored = false;
             World world = chest.getBlock().getWorld();
             Location loc = chest.getBlock().getLocation();
             StructureType structureType = null;
