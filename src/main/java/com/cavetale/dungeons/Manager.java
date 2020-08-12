@@ -113,7 +113,7 @@ final class Manager implements Listener {
             }
         }
         final ItemStack item;
-        switch (random.nextInt(3)) {
+        switch (random.nextInt(2)) {
         case 0: {
             // Simple item
             Map<Material, Integer> map = new EnumMap<>(Material.class);
@@ -153,49 +153,49 @@ final class Manager implements Listener {
                 .info("Bonus item: Enchanted book: " + ench + " " + level);
             break;
         }
-        case 2: {
-            // Treasure Map
-            List<StructureType> list = Arrays
-                .asList(StructureType.OCEAN_MONUMENT,
-                        StructureType.BURIED_TREASURE);
-            int radius = 256;
-            boolean findUnexplored = false;
-            World world = chest.getBlock().getWorld();
-            Location loc = chest.getBlock().getLocation();
-            StructureType structureType = null;
-            for (StructureType type : list) {
-                Location found = world
-                    .locateNearestStructure(loc, type,
-                                            radius, findUnexplored);
-                if (found != null) {
-                    structureType = type;
-                    break;
-                }
-            }
-            if (structureType == null) return;
-            try {
-                item = dungeonWorld.plugin.getServer()
-                    .createExplorerMap(world, loc,
-                                       structureType, radius, findUnexplored);
-            } catch (Exception e) {
-                dungeonWorld.plugin.getLogger()
-                    .warning("createExplorerMap: " + structureType
-                             + " radius=" + radius
-                             + " findUnexplored=" + findUnexplored);
-                e.printStackTrace();
-                return;
-            }
-            if (item == null) return;
-            ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName(Stream.of(structureType.getName().split("_"))
-                                .map(s -> s.substring(0, 1).toUpperCase()
-                                     + s.substring(1).toLowerCase())
-                                .collect(Collectors.joining(" ")));
-            item.setItemMeta(meta);
-            dungeonWorld.plugin.getLogger()
-                .info("Bonus item: Treasure map: " + structureType.getName());
-            break;
-        }
+        // case 2: {
+        //     // Treasure Map
+        //     List<StructureType> list = Arrays
+        //         .asList(StructureType.OCEAN_MONUMENT,
+        //                 StructureType.BURIED_TREASURE);
+        //     int radius = 256;
+        //     boolean findUnexplored = false;
+        //     World world = chest.getBlock().getWorld();
+        //     Location loc = chest.getBlock().getLocation();
+        //     StructureType structureType = null;
+        //     for (StructureType type : list) {
+        //         Location found = world
+        //             .locateNearestStructure(loc, type,
+        //                                     radius, findUnexplored);
+        //         if (found != null) {
+        //             structureType = type;
+        //             break;
+        //         }
+        //     }
+        //     if (structureType == null) return;
+        //     try {
+        //         item = dungeonWorld.plugin.getServer()
+        //             .createExplorerMap(world, loc,
+        //                                structureType, radius, findUnexplored);
+        //     } catch (Exception e) {
+        //         dungeonWorld.plugin.getLogger()
+        //             .warning("createExplorerMap: " + structureType
+        //                      + " radius=" + radius
+        //                      + " findUnexplored=" + findUnexplored);
+        //         e.printStackTrace();
+        //         return;
+        //     }
+        //     if (item == null) return;
+        //     ItemMeta meta = item.getItemMeta();
+        //     meta.setDisplayName(Stream.of(structureType.getName().split("_"))
+        //                         .map(s -> s.substring(0, 1).toUpperCase()
+        //                              + s.substring(1).toLowerCase())
+        //                         .collect(Collectors.joining(" ")));
+        //     item.setItemMeta(meta);
+        //     dungeonWorld.plugin.getLogger()
+        //         .info("Bonus item: Treasure map: " + structureType.getName());
+        //     break;
+        // }
         default: return;
         }
         inv.setItem(slot, item);
