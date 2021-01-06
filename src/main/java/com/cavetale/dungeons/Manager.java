@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
@@ -19,8 +17,6 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
-import org.bukkit.StructureType;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
@@ -34,7 +30,6 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.loot.LootTable;
 
 @Getter @RequiredArgsConstructor
@@ -121,8 +116,8 @@ final class Manager implements Listener {
                 if (mat.isRecord()) map.put(mat, 1);
             }
             map.put(Material.ENCHANTED_GOLDEN_APPLE, 1);
-            map.put(Material.WITHER_ROSE, 32);
-            map.put(Material.SPONGE, 4);
+            map.put(Material.WITHER_ROSE, 16);
+            map.put(Material.SPONGE, 16);
             map.put(Material.WET_SPONGE, 4);
             map.put(Material.HEART_OF_THE_SEA, 1);
             map.put(Material.NAUTILUS_SHELL, 8);
@@ -131,6 +126,8 @@ final class Manager implements Listener {
             map.put(Material.DRAGON_EGG, 1);
             map.put(Material.SHULKER_SHELL, 4);
             map.put(Material.SCUTE, 5);
+            map.put(Material.ELYTRA, 1);
+            map.put(Material.TOTEM_OF_UNDYING, 1);
             List<Material> list = new ArrayList<>(map.keySet());
             Material mat = list.get(random.nextInt(list.size()));
             int amount = map.get(mat);
