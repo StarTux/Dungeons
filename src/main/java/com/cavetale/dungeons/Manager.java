@@ -1,5 +1,6 @@
 package com.cavetale.dungeons;
 
+import com.cavetale.core.event.player.PluginPlayerEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -76,6 +77,7 @@ final class Manager implements Listener {
             DungeonLootEvent dungeonLootEvent =
                 new DungeonLootEvent(block, chest.getInventory(),
                                      player, dungeon);
+            PluginPlayerEvent.Name.DUNGEON_LOOT.call(dungeonWorld.plugin, player);
             Bukkit.getPluginManager().callEvent(dungeonLootEvent);
         }
         // Update dungeon raided state
