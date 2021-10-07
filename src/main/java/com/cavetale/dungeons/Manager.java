@@ -23,6 +23,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -56,9 +57,8 @@ final class Manager implements Listener {
      * with the custom LootTable tag is being opened.
      */
     void onPlayerInteractChest(PlayerInteractEvent event) {
-        if (event.isCancelled()) return;
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK
-            && event.getAction() != Action.LEFT_CLICK_BLOCK) return;
+        if (event.useInteractedBlock() == Event.Result.DENY) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.LEFT_CLICK_BLOCK) return;
         if (event.getHand() != EquipmentSlot.HAND) return;
         Block block = event.getClickedBlock();
         if (block == null) return;
@@ -74,11 +74,12 @@ final class Manager implements Listener {
             LootTable newLootTable = Bukkit.getServer().getLootTable(newKey);
             chest.setLootTable(newLootTable);
             chest.update();
-            DungeonLootEvent dungeonLootEvent =
-                new DungeonLootEvent(block, chest.getInventory(),
-                                     player, dungeon);
-            PluginPlayerEvent.Name.DUNGEON_LOOT.call(dungeonWorld.plugin, player);
+            DungeonLootEvent dungeonLootEvent = new DungeonLootEvent(block, chest.getInventory(),
+                                                                     player, dungeon);
             Bukkit.getPluginManager().callEvent(dungeonLootEvent);
+            if (dungeon != null && !dungeon.isRaided()) {
+                PluginPlayerEvent.Name.DUNGEON_LOOT.call(dungeonWorld.plugin, player);
+            }
         }
         // Update dungeon raided state
         if (dungeon != null && !dungeon.isRaided()) {

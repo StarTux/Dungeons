@@ -4,11 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -91,17 +90,13 @@ public final class DungeonsPlugin extends JavaPlugin {
             if (nearest == null) {
                 player.sendMessage("No dungeon found");
             } else {
-                ComponentBuilder cb = new ComponentBuilder("Nearest dungeon: "
-                                                           + nearest.toString());
-                cb.color(ChatColor.YELLOW);
                 int dx = (nearest.lo.get(0) + nearest.hi.get(0)) / 2;
                 int dy = (nearest.lo.get(1) + nearest.hi.get(1)) / 2;
                 int dz = (nearest.lo.get(2) + nearest.hi.get(2)) / 2;
                 String cmd = "/tp " + dx + " " + dy + " " + dz;
-                cb.event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, cmd));
-                cb.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                        TextComponent.fromLegacyText(cmd)));
-                player.sendMessage(cb.create());
+                player.sendMessage(Component.text("Nearest dungeon: " + nearest.toString(), NamedTextColor.YELLOW)
+                                   .hoverEvent(HoverEvent.showText(Component.text(cmd, NamedTextColor.YELLOW)))
+                                   .clickEvent(ClickEvent.suggestCommand(cmd)));
             }
             return true;
         }

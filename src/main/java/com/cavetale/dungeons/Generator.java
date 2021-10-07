@@ -40,7 +40,7 @@ final class Generator implements Listener {
         BlockClip clip;
     }
 
-    int loadDungeons() {
+    protected int loadDungeons() {
         ArrayList<DungeonClip> ls = new ArrayList<>();
         HashSet<String> tags = new HashSet<>();
         File dir = new File(dungeonWorld.plugin.getDataFolder(), "dungeons");
@@ -52,7 +52,9 @@ final class Generator implements Listener {
             try {
                 BlockClip clip = BlockClip.load(file);
                 if (clip.getMetadata().containsKey("tags")) {
-                    tags.addAll((List<String>) clip.getMetadata().get("tags"));
+                    @SuppressWarnings("unchecked")
+                    List<String> clipTags = (List<String>) clip.getMetadata().get("tags");
+                    tags.addAll(clipTags);
                 }
                 ls.add(new DungeonClip(name, clip));
             } catch (Exception e) {
@@ -66,12 +68,14 @@ final class Generator implements Listener {
         return ls.size();
     }
 
-    void loadTags() {
+    protected void loadTags() {
         Gson gson = new Gson();
         File file = new File(dungeonWorld.plugin.getDataFolder(), "data");
         file = new File(file, "chest_tag.json");
         try (FileReader reader = new FileReader(file)) {
-            chestTag = gson.fromJson(reader, Map.class);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> map = (Map<String, Object>) gson.fromJson(reader, Map.class);
+            chestTag = map;
         } catch (Exception e) {
             e.printStackTrace();
             chestTag = new HashMap<>();
@@ -79,7 +83,9 @@ final class Generator implements Listener {
         file = new File(dungeonWorld.plugin.getDataFolder(), "data");
         file = new File(file, "spawner_tag.json");
         try (FileReader reader = new FileReader(file)) {
-            spawnerTag = gson.fromJson(reader, Map.class);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> map = (Map<String, Object>) gson.fromJson(reader, Map.class);
+            spawnerTag = map;
         } catch (Exception e) {
             e.printStackTrace();
             spawnerTag = new HashMap<>();
@@ -94,7 +100,7 @@ final class Generator implements Listener {
         Bukkit.getScheduler().runTask(dungeonWorld.plugin, () -> trySpawnDungeon(chunk));
     }
 
-    boolean trySpawnDungeon(Chunk chunk) {
+    protected boolean trySpawnDungeon(Chunk chunk) {
         int cx = chunk.getX();
         int cz = chunk.getZ();
         for (int i = 0; i < 10; i += 1) {
@@ -113,7 +119,7 @@ final class Generator implements Listener {
         return false;
     }
 
-    boolean trySpawnDungeon(Chunk chunk, int ox, int oy, int oz) {
+    protected boolean trySpawnDungeon(Chunk chunk, int ox, int oy, int oz) {
         // Check proximity
         for (Dungeon pd: dungeonWorld.persistence.dungeons) {
             int ax = pd.lo.get(0) - margin;
