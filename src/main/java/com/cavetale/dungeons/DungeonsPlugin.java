@@ -27,8 +27,8 @@ public final class DungeonsPlugin extends JavaPlugin {
     public void onEnable() {
         reloadConfig();
         saveDefaultConfig();
-        saveResource("data/chest_tag.json", false);
-        saveResource("data/spawner_tag.json", false);
+        saveFile("data/chest_tag.json");
+        saveFile("data/spawner_tag.json");
         int margin = getConfig().getInt("margin");
         String lootTable = getConfig().getString("loot_table");
         for (String worldName: getConfig().getStringList("worlds")) {
@@ -53,6 +53,12 @@ public final class DungeonsPlugin extends JavaPlugin {
                                  + worldName + "\", dungeons=" + dc
                                  + " margin=" + margin);
             }
+        }
+    }
+
+    private void saveFile(String path) {
+        if (!new File(getDataFolder(), path).exists()) {
+            saveResource(path, false);
         }
     }
 
