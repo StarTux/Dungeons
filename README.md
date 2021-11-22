@@ -41,9 +41,23 @@ A compass can be used by ordinary players to locate dungeons.  The compass is ac
 - Double chests spawn with a visual glitch where the right half appears like a single chest which clips into the double chest part.  Adjusting the pasting order should put an end to this, but more empirical data need to be collected.
 - Tags are currently not stored in the persistent `dungeons.json` file.
 - Skeletons spawned with the custom `spawner_tag.json` come unarmed, without a bow in their hands.
+- Rip out the custom block tags and use the Bukkit API instead!  Might have to wait on BlockClip to do the same first.
 
 ## Dependencies
+
+All dependencies are soft, because they only apply to the Generator or Manager portion, respectively:
+
+### Generator
+- [Decorator](https://github.com/StarTux/Decorator) to generate any dungeons in the world, this plugin requires Decorator.
 - [BlockClip](https://github.com/StarTux/BlockClip) to produce the dungeon schematics, as well as load and paste them via the API.
+
+### Manager
+- [Exploits](https://github.com/StarTux/Exploits) to check if the interacted chest is player placed.
+- [Worlds](https://github.com/StarTux/Worlds) should be loaded first to ensure the mining world is loaded.
+- [Core](https://github.com/StarTux/Core) is needed because the PluginPlayerEvent is called.
+
+### General
+- [Worlds](https://github.com/StarTux/Worlds) should be loaded first to ensure the mining world is loaded.
 
 ## Links
 - [Source code](https://github.com/StarTux/Dungeons) on Github

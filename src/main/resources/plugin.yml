@@ -8,7 +8,7 @@ author: StarTux
 website: https://cavetale.com
 
 depend: []
-softdepend: [Core, Decorator, BlockClip, Worlds]
+softdepend: [Core, Decorator, BlockClip, Worlds, Exploits]
 
 commands:
 

@@ -1,6 +1,7 @@
 package com.cavetale.dungeons;
 
 import com.cavetale.core.event.player.PluginPlayerEvent;
+import com.winthier.exploits.Exploits;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -61,6 +62,7 @@ final class Manager implements Listener {
         Block block = event.getClickedBlock();
         if (block == null) return;
         if (!block.getWorld().getName().equals(dungeonWorld.worldName)) return;
+        if (Exploits.isPlayerPlaced(block)) return;
         BlockState state = block.getState();
         if (!(state instanceof Chest)) return;
         final Chest chest = (Chest) state;

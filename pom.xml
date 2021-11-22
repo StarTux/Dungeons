@@ -90,5 +90,13 @@
       <scope>provided</scope>
     </dependency>
 
+    <!-- Exploits -->
+    <dependency>
+      <groupId>com.winthier.exploits</groupId>
+      <artifactId>exploits</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+
   </dependencies>
 </project>
