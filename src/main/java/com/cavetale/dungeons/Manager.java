@@ -44,17 +44,15 @@ final class Manager implements Listener {
         onPlayerInteractCompass(event);
     }
 
-    boolean isDungeonLootChest(Chest chest) {
-        LootTable lootTable = chest.getLootTable();
-        if (lootTable == null) return false;
-        NamespacedKey key = lootTable.getKey();
-        if (key == null) return false;
-        return key.toString().equals(dungeonWorld.lootTable);
-    }
-
     /**
      * Listen for chest opening to see if one ouf our dungeon chests
      * with the custom LootTable tag is being opened.
+     *
+     * Policy: The first chest opened within any dungeon will be
+     * populated with bonus loot and marked with the standard loot tag
+     * (simple_dungeon).  The DungeonLootEvent and PluginPlayerEvent
+     * are called.  After that, the dungeon will be marked as looted,
+     * so that all additional chests will appear empty.
      */
     void onPlayerInteractChest(PlayerInteractEvent event) {
         if (event.useInteractedBlock() == Event.Result.DENY) return;
@@ -67,26 +65,19 @@ final class Manager implements Listener {
         if (!(state instanceof Chest)) return;
         final Chest chest = (Chest) state;
         Dungeon dungeon = dungeonWorld.findDungeonAt(block);
-        if (dungeon == null) return;
+        if (dungeon == null || dungeon.isRaided()) return;
+        dungeon.setRaided(true);
+        dungeonWorld.savePersistence();
         Player player = event.getPlayer();
-        if (isDungeonLootChest(chest)) {
-            NamespacedKey newKey = NamespacedKey.minecraft("chests/simple_dungeon");
-            LootTable newLootTable = Bukkit.getServer().getLootTable(newKey);
-            chest.setLootTable(newLootTable);
-            chest.update();
-            DungeonLootEvent dungeonLootEvent = new DungeonLootEvent(block, chest.getInventory(),
-                                                                     player, dungeon);
-            Bukkit.getPluginManager().callEvent(dungeonLootEvent);
-            if (dungeon != null && !dungeon.isRaided()) {
-                PluginPlayerEvent.Name.DUNGEON_LOOT.call(dungeonWorld.plugin, player);
-            }
-        }
-        // Update dungeon raided state
-        if (dungeon != null && !dungeon.isRaided()) {
-            dungeon.setRaided(true);
-            dungeonWorld.savePersistence();
-            addBonusLoot(chest, player);
-        }
+        DungeonLootEvent dungeonLootEvent = new DungeonLootEvent(block, chest.getInventory(),
+                                                                 player, dungeon);
+        Bukkit.getPluginManager().callEvent(dungeonLootEvent);
+        PluginPlayerEvent.Name.DUNGEON_LOOT.call(dungeonWorld.plugin, player);
+        addBonusLoot(chest, player);
+        NamespacedKey newKey = NamespacedKey.minecraft("chests/simple_dungeon");
+        LootTable newLootTable = Bukkit.getServer().getLootTable(newKey);
+        chest.setLootTable(newLootTable);
+        chest.update();
     }
 
     void addBonusLoot(Chest chest, Player player) {
