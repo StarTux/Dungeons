@@ -103,11 +103,13 @@ final class Generator implements Listener {
     protected boolean trySpawnDungeon(Chunk chunk) {
         int cx = chunk.getX();
         int cz = chunk.getZ();
+        final int minY = 8 + chunk.getWorld().getMinHeight();
+        final int maxY = 48;
         for (int i = 0; i < 10; i += 1) {
             // Random offset
             int dx = random.nextInt(16);
             int dz = random.nextInt(16);
-            int dy = 8 + random.nextInt(40);
+            int dy = minY + random.nextInt(maxY - minY);
             // Origin
             int ox = cx * 16 + dx;
             int oy = dy;
@@ -150,6 +152,7 @@ final class Generator implements Listener {
                     case LAVA:
                     case WATER:
                     case OBSIDIAN:
+                    case MOSS_BLOCK:
                         return false;
                     default: break;
                     }
