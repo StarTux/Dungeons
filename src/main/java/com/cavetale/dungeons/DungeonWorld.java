@@ -19,7 +19,6 @@ import org.bukkit.block.Block;
 final class DungeonWorld {
     final DungeonsPlugin plugin;
     final String worldName;
-    final String lootTable;
     Persistence persistence = new Persistence();
     final Gson gson = new Gson();
 

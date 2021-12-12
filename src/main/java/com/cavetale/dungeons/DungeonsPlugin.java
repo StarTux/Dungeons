@@ -27,12 +27,9 @@ public final class DungeonsPlugin extends JavaPlugin {
     public void onEnable() {
         reloadConfig();
         saveDefaultConfig();
-        saveFile("data/chest_tag.json");
-        saveFile("data/spawner_tag.json");
         int margin = getConfig().getInt("margin");
-        String lootTable = getConfig().getString("loot_table");
         for (String worldName: getConfig().getStringList("worlds")) {
-            DungeonWorld dungeonWorld = new DungeonWorld(this, worldName, lootTable);
+            DungeonWorld dungeonWorld = new DungeonWorld(this, worldName);
             dungeonWorld.loadPersistence();
             if (getConfig().getBoolean("manage")) {
                 specialItemFile = new File(getDataFolder(), "specialItem.yml");
@@ -40,25 +37,16 @@ public final class DungeonsPlugin extends JavaPlugin {
                 Manager manager = new Manager(dungeonWorld);
                 getServer().getPluginManager().registerEvents(manager, this);
                 managers.add(manager);
-                getLogger().info("Manager enabled for world \""
-                                 + worldName + "\" lootTable=" + lootTable);
             }
             if (getConfig().getBoolean("generate")) {
                 Generator generator = new Generator(dungeonWorld, margin);
                 int dc = generator.loadDungeons();
-                generator.loadTags();
                 getServer().getPluginManager().registerEvents(generator, this);
                 generators.add(generator);
                 getLogger().info("Generator enabled for world \""
                                  + worldName + "\", dungeons=" + dc
                                  + " margin=" + margin);
             }
-        }
-    }
-
-    private void saveFile(String path) {
-        if (!new File(getDataFolder(), path).exists()) {
-            saveResource(path, false);
         }
     }
 

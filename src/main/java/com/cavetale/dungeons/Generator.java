@@ -1,28 +1,28 @@
 package com.cavetale.dungeons;
 
 import com.cavetale.blockclip.BlockClip;
-import com.google.gson.Gson;
 import com.winthier.decorator.DecoratorEvent;
 import java.io.File;
-import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Chest;
+import org.bukkit.block.CreatureSpawner;
+import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.loot.LootTables;
 
 @Getter @RequiredArgsConstructor
 final class Generator implements Listener {
@@ -30,9 +30,14 @@ final class Generator implements Listener {
     final int margin;
     private ArrayList<DungeonClip> dungeons = new ArrayList<>();
     private int dungeonIndex = 0;
-    private Map<String, Object> chestTag;
-    private Map<String, Object> spawnerTag;
     private final Random random = new Random(System.nanoTime());
+    private final EntityType[] spawnedTypes = new EntityType[] {
+        EntityType.CAVE_SPIDER,
+        EntityType.SPIDER,
+        EntityType.ZOMBIE,
+        EntityType.SKELETON,
+        EntityType.CREEPER,
+    };
 
     @Value
     static class DungeonClip {
@@ -66,30 +71,6 @@ final class Generator implements Listener {
         dungeons = ls;
         Collections.shuffle(dungeons, random);
         return ls.size();
-    }
-
-    protected void loadTags() {
-        Gson gson = new Gson();
-        File file = new File(dungeonWorld.plugin.getDataFolder(), "data");
-        file = new File(file, "chest_tag.json");
-        try (FileReader reader = new FileReader(file)) {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> map = (Map<String, Object>) gson.fromJson(reader, Map.class);
-            chestTag = map;
-        } catch (Exception e) {
-            e.printStackTrace();
-            chestTag = new HashMap<>();
-        }
-        file = new File(dungeonWorld.plugin.getDataFolder(), "data");
-        file = new File(file, "spawner_tag.json");
-        try (FileReader reader = new FileReader(file)) {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> map = (Map<String, Object>) gson.fromJson(reader, Map.class);
-            spawnerTag = map;
-        } catch (Exception e) {
-            e.printStackTrace();
-            spawnerTag = new HashMap<>();
-        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -163,31 +144,27 @@ final class Generator implements Listener {
             }
         }
         dungeonIndex += 1;
+        int spawnerCount = 0;
+        int chestCount = 0;
+        for (BlockState blockState : dungeon.clip.getBlockStates()) {
+            if (blockState instanceof CreatureSpawner spawner) {
+                spawner.setSpawnedType(spawnedTypes[random.nextInt(spawnedTypes.length)]);
+                spawnerCount += 1;
+            } else if (blockState instanceof Chest chest) {
+                chest.setLootTable(LootTables.SIMPLE_DUNGEON.getLootTable());
+                chestCount += 1;
+            }
+        }
         dungeonWorld.plugin.getLogger()
             .info(chunk.getWorld().getName() + ": Pasting dungeon "
-                  + dungeon.name + " at "
-                  + (ox + ux / 2) + ","
-                  + (oy + uy / 2) + ","
-                  + (oz + uz / 2) + "...");
-        try {
-            dungeon.clip.paste(origin, (block, vec, data, tag) -> {
-                    if (!block.isEmpty() && !block.getType().isSolid()) {
-                        return true;
-                    }
-                    if (data.getMaterial() == Material.SPAWNER) {
-                        tag.putAll(spawnerTag);
-                        return true;
-                    }
-                    if (data instanceof org.bukkit.block.data.type.Chest) {
-                        tag.putAll(chestTag);
-                        return true;
-                    }
-                    return true;
-                });
-        } catch (IllegalArgumentException iae) {
-            iae.printStackTrace();
-            return false;
-        }
+                  + dungeon.name + " at"
+                  + " " + dungeonWorld.worldName
+                  + " " + (ox + ux / 2)
+                  + " " + (oy + uy / 2)
+                  + " " + (oz + uz / 2)
+                  + " spawners=" + spawnerCount
+                  + " chests=" + chestCount);
+        dungeon.clip.paste(origin);
         Dungeon pd;
         pd = new Dungeon(dungeon.name,
                          Arrays.asList(ox, oy, oz),
