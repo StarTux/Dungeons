@@ -17,7 +17,10 @@ import org.bukkit.Chunk;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
+import org.bukkit.block.Container;
 import org.bukkit.block.CreatureSpawner;
+import org.bukkit.block.structure.Mirror;
+import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -31,7 +34,7 @@ final class Generator implements Listener {
     private ArrayList<DungeonClip> dungeons = new ArrayList<>();
     private int dungeonIndex = 0;
     private final Random random = new Random(System.nanoTime());
-    private final EntityType[] spawnedTypes = new EntityType[] {
+    private final static EntityType[] SPAWNED_TYPES = new EntityType[] {
         EntityType.CAVE_SPIDER,
         EntityType.SPIDER,
         EntityType.ZOMBIE,
@@ -143,28 +146,8 @@ final class Generator implements Listener {
                 }
             }
         }
-        dungeonIndex += 1;
-        int spawnerCount = 0;
-        int chestCount = 0;
-        for (BlockState blockState : dungeon.clip.getBlockStates()) {
-            if (blockState instanceof CreatureSpawner spawner) {
-                spawner.setSpawnedType(spawnedTypes[random.nextInt(spawnedTypes.length)]);
-                spawnerCount += 1;
-            } else if (blockState instanceof Chest chest) {
-                chest.setLootTable(LootTables.SIMPLE_DUNGEON.getLootTable());
-                chestCount += 1;
-            }
-        }
-        dungeonWorld.plugin.getLogger()
-            .info(chunk.getWorld().getName() + ": Pasting dungeon "
-                  + dungeon.name + " at"
-                  + " " + dungeonWorld.worldName
-                  + " " + (ox + ux / 2)
-                  + " " + (oy + uy / 2)
-                  + " " + (oz + uz / 2)
-                  + " spawners=" + spawnerCount
-                  + " chests=" + chestCount);
-        dungeon.clip.paste(origin);
+        dungeonIndex += 1; // no return
+        pasteDungeon(dungeon.clip, origin, random);
         Dungeon pd;
         pd = new Dungeon(dungeon.name,
                          Arrays.asList(ox, oy, oz),
@@ -172,5 +155,42 @@ final class Generator implements Listener {
         dungeonWorld.persistence.dungeons.add(pd);
         dungeonWorld.savePersistence();
         return true;
+    }
+
+    public static void pasteDungeon(BlockClip clip, Block origin, Random rnd) {
+        int spawnerCount = 0;
+        int chestCount = 0;
+        clip.getStructure().place(origin.getLocation(),
+                                  true,
+                                  StructureRotation.NONE, Mirror.NONE,
+                                  0, 1.0f, rnd);
+        for (int y = 0; y <= clip.getSizeY(); y += 1) {
+            for (int z = 0; z <= clip.getSizeZ(); z += 1) {
+                for (int x = 0; x <= clip.getSizeX(); x += 1) {
+                    Block block = origin.getRelative(x, y, z);
+                    BlockState blockState = block.getState();
+                    if (blockState instanceof CreatureSpawner spawner) {
+                        spawner.setSpawnedType(SPAWNED_TYPES[rnd.nextInt(SPAWNED_TYPES.length)]);
+                        spawner.update();
+                        spawnerCount += 1;
+                    } else if (blockState instanceof Container container) {
+                        container.getInventory().clear();
+                        if (container instanceof Chest chest) {
+                            chest.setLootTable(LootTables.SIMPLE_DUNGEON.getLootTable());
+                            chestCount += 1;
+                        }
+                        container.update();
+                    }
+                }
+            }
+        }
+        DungeonsPlugin.getInstance().getLogger()
+            .info(origin.getWorld().getName() + ": Pasting dungeon "
+                  + clip.getFilename() + " at"
+                  + " " + (origin.getX() + clip.getSize().get(0) / 2)
+                  + " " + (origin.getY() + clip.getSize().get(1) / 2)
+                  + " " + (origin.getZ() + clip.getSize().get(2) / 2)
+                  + " spawners=" + spawnerCount
+                  + " chests=" + chestCount);
     }
 }

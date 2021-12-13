@@ -1,9 +1,13 @@
 package com.cavetale.dungeons;
 
+import com.cavetale.blockclip.BlockClip;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
+import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -17,6 +21,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class DungeonsPlugin extends JavaPlugin {
+    @Getter protected static DungeonsPlugin instance;
     private final ArrayList<Generator> generators = new ArrayList<>();
     private final ArrayList<Manager> managers = new ArrayList<>();
     ItemStack specialItem;
@@ -25,6 +30,7 @@ public final class DungeonsPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        instance = this;
         reloadConfig();
         saveDefaultConfig();
         int margin = getConfig().getInt("margin");
@@ -151,6 +157,22 @@ public final class DungeonsPlugin extends JavaPlugin {
             player.sendMessage("Special item set.");
             return true;
         } // case "special"
+        case "paste": {
+            File dir = new File(getDataFolder(), "dungeons");
+            File file = new File(dir, args[1] + ".json");
+            if (!file.exists()) {
+                sender.sendMessage("Not found: " + file);
+                return true;
+            }
+            BlockClip clip;
+            try {
+                clip = BlockClip.load(file);
+            } catch (IOException ioe) {
+                throw new UncheckedIOException(ioe);
+            }
+            Generator.pasteDungeon(clip, player.getLocation().getBlock(), ThreadLocalRandom.current());
+            return true;
+        }
         default: return false;
         } // switch (args[0])
     } // onCommand
