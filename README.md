@@ -52,6 +52,3 @@ All dependencies are soft, because they only apply to the Generator or Manager p
 
 ## Links
 - [Source code](https://github.com/StarTux/Dungeons) on Github
-
-## TODO
-- Remove the loot table switching in the Manager as soon as a new mining world is loaded!

@@ -8,7 +8,7 @@ author: StarTux
 website: https://cavetale.com
 
 depend: []
-softdepend: [Core, Decorator, BlockClip, Worlds, Exploits]
+softdepend: [Core, Decorator, BlockClip, Worlds, Exploits, Mytems]
 
 commands:
 
@@ -18,8 +18,6 @@ commands:
     usage: |-
       /dungeons locate - Locate nearest
       /dungeons info - Current dungeon info
-      /dungeons special - Print special item
-      /dungeons special <%chance> - Set special item from hand. 0 to disable.
 
 permissions:
 

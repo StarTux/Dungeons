@@ -34,7 +34,7 @@ final class Generator implements Listener {
     private ArrayList<DungeonClip> dungeons = new ArrayList<>();
     private int dungeonIndex = 0;
     private final Random random = new Random(System.nanoTime());
-    private final static EntityType[] SPAWNED_TYPES = new EntityType[] {
+    private static final EntityType[] SPAWNED_TYPES = new EntityType[] {
         EntityType.CAVE_SPIDER,
         EntityType.SPIDER,
         EntityType.ZOMBIE,

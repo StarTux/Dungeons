@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.logging.Level;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -15,18 +14,13 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class DungeonsPlugin extends JavaPlugin {
     @Getter protected static DungeonsPlugin instance;
     private final ArrayList<Generator> generators = new ArrayList<>();
     private final ArrayList<Manager> managers = new ArrayList<>();
-    ItemStack specialItem;
-    double specialChance;
-    File specialItemFile;
 
     @Override
     public void onEnable() {
@@ -38,8 +32,6 @@ public final class DungeonsPlugin extends JavaPlugin {
             DungeonWorld dungeonWorld = new DungeonWorld(this, worldName);
             dungeonWorld.loadPersistence();
             if (getConfig().getBoolean("manage")) {
-                specialItemFile = new File(getDataFolder(), "specialItem.yml");
-                loadSpecialItem();
                 Manager manager = new Manager(dungeonWorld);
                 getServer().getPluginManager().registerEvents(manager, this);
                 managers.add(manager);
@@ -118,45 +110,6 @@ public final class DungeonsPlugin extends JavaPlugin {
             }
             return true;
         }
-        case "special": {
-            if (managers.isEmpty()) {
-                sender.sendMessage("No managers loaded :(");
-            }
-            if (args.length == 1) {
-                if (specialItem == null) {
-                    sender.sendMessage("No special item");
-                } else {
-                    sender.sendMessage("Special: " + specialItem.getType()
-                                       + "x" + specialItem.getAmount()
-                                       + " " + (specialChance * 100.0) + "%");
-                }
-                return true;
-            }
-            if (args.length > 2) return false;
-            int intChance = 100;
-            double chance = 1.0;
-            if (args.length >= 2) {
-                intChance = Integer.parseInt(args[1]);
-                chance = (double) intChance * 0.01;
-            }
-            if (intChance == 0) {
-                specialItem = null;
-                specialChance = 0;
-                saveSpecialItem();
-                sender.sendMessage("Special item removed.");
-                return true;
-            }
-            if (player == null) {
-                sender.sendMessage("Player expected");
-                return true;
-            }
-            ItemStack item = player.getInventory().getItemInMainHand();
-            specialItem = item.clone();
-            specialChance = chance;
-            saveSpecialItem();
-            player.sendMessage("Special item set.");
-            return true;
-        } // case "special"
         case "paste": {
             File dir = new File(getDataFolder(), "dungeons");
             File file = new File(dir, args[1] + ".json");
@@ -176,23 +129,4 @@ public final class DungeonsPlugin extends JavaPlugin {
         default: return false;
         } // switch (args[0])
     } // onCommand
-
-    void loadSpecialItem() {
-        YamlConfiguration cfg = YamlConfiguration.loadConfiguration(specialItemFile);
-        specialItem = cfg.getItemStack("item");
-        specialChance = cfg.getDouble("chance");
-    }
-
-    void saveSpecialItem() {
-        YamlConfiguration cfg = new YamlConfiguration();
-        if (specialItem != null) {
-            cfg.set("item", specialItem);
-            cfg.set("chance", specialChance);
-        }
-        try {
-            cfg.save(specialItemFile);
-        } catch (IOException ioe) {
-            getLogger().log(Level.SEVERE, "Saving special item", ioe);
-        }
-    }
 }

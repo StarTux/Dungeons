@@ -1,6 +1,7 @@
 package com.cavetale.dungeons;
 
 import com.cavetale.core.event.player.PluginPlayerEvent;
+import com.cavetale.mytems.Mytems;
 import com.winthier.exploits.Exploits;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,7 +17,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.block.Block;
@@ -33,7 +33,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
-import org.bukkit.loot.LootTable;
+import org.bukkit.loot.LootTables;
 
 @Getter @RequiredArgsConstructor
 final class Manager implements Listener {
@@ -55,7 +55,7 @@ final class Manager implements Listener {
      * are called.  After that, the dungeon will be marked as looted,
      * so that all additional chests will appear empty.
      */
-    void onPlayerInteractChest(PlayerInteractEvent event) {
+    protected void onPlayerInteractChest(PlayerInteractEvent event) {
         if (event.useInteractedBlock() == Event.Result.DENY) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.LEFT_CLICK_BLOCK) return;
         if (event.getHand() != EquipmentSlot.HAND) return;
@@ -65,43 +65,41 @@ final class Manager implements Listener {
         if (Exploits.isPlayerPlaced(block)) return;
         BlockState state = block.getState();
         if (!(state instanceof Chest)) return;
-        final Chest chest = (Chest) state;
         Dungeon dungeon = dungeonWorld.findDungeonAt(block);
         if (dungeon == null || dungeon.isRaided()) return;
         dungeon.setRaided(true);
         dungeonWorld.savePersistence();
-        Player player = event.getPlayer();
-        DungeonLootEvent dungeonLootEvent = new DungeonLootEvent(block, chest.getInventory(),
-                                                                 player, dungeon);
-        Bukkit.getPluginManager().callEvent(dungeonLootEvent);
-        PluginPlayerEvent.Name.DUNGEON_LOOT.call(dungeonWorld.plugin, player);
-        addBonusLoot(chest, player);
-        NamespacedKey newKey = NamespacedKey.minecraft("chests/simple_dungeon");
-        LootTable newLootTable = Bukkit.getServer().getLootTable(newKey);
-        chest.setLootTable(newLootTable);
+        final Chest chest = (Chest) state;
+        // Begin Temp fix
+        chest.setLootTable(LootTables.SIMPLE_DUNGEON.getLootTable());
         chest.update();
+        // End Temp Fix
+        Player player = event.getPlayer();
+        PluginPlayerEvent.Name.DUNGEON_LOOT.call(dungeonWorld.plugin, player);
+        Bukkit.getScheduler().runTask(dungeonWorld.plugin, () -> {
+                addBonusLoot(block, player);
+            });
     }
 
-    void addBonusLoot(Chest chest, Player player) {
+    protected void addBonusLoot(Block block, Player player) {
+        BlockState state = block.getState();
+        if (!(state instanceof Chest chest)) return;
         Random random = ThreadLocalRandom.current();
         Inventory inv = chest.getInventory();
         List<Integer> slots = new ArrayList<>(inv.getSize());
         for (int i = 0; i < inv.getSize(); i += 1) {
             ItemStack item = inv.getItem(i);
-            if (item == null || item.getAmount() == 0
-                || item.getType() == Material.AIR) {
+            if (item == null || item.getType() == Material.AIR) {
                 slots.add(i);
             }
         }
+        if (player.isOp()) {
+            player.sendMessage("addBonusLoot: " + slots);
+        }
         if (slots.isEmpty()) return;
         Collections.shuffle(slots, random);
-        final int slot = slots.get(0);
-        ItemStack specialItem = dungeonWorld.plugin.specialItem;
-        if (slots.size() >= 2 && specialItem != null && specialItem.getAmount() > 0) {
-            if (random.nextDouble() < dungeonWorld.plugin.specialChance) {
-                int slot2 = slots.get(1);
-                inv.setItem(slot2, specialItem.clone());
-            }
+        if (slots.size() >= 2 && random.nextDouble() < 0.3) {
+            inv.setItem(slots.get(1), Mytems.KITTY_COIN.createItemStack());
         }
         final ItemStack item;
         switch (random.nextInt(2)) {
@@ -146,52 +144,12 @@ final class Manager implements Listener {
                 .info("Bonus item: Enchanted book: " + ench + " " + level);
             break;
         }
-        // case 2: {
-        //     // Treasure Map
-        //     List<StructureType> list = Arrays
-        //         .asList(StructureType.OCEAN_MONUMENT,
-        //                 StructureType.BURIED_TREASURE);
-        //     int radius = 256;
-        //     boolean findUnexplored = false;
-        //     World world = chest.getBlock().getWorld();
-        //     Location loc = chest.getBlock().getLocation();
-        //     StructureType structureType = null;
-        //     for (StructureType type : list) {
-        //         Location found = world
-        //             .locateNearestStructure(loc, type,
-        //                                     radius, findUnexplored);
-        //         if (found != null) {
-        //             structureType = type;
-        //             break;
-        //         }
-        //     }
-        //     if (structureType == null) return;
-        //     try {
-        //         item = dungeonWorld.plugin.getServer()
-        //             .createExplorerMap(world, loc,
-        //                                structureType, radius, findUnexplored);
-        //     } catch (Exception e) {
-        //         dungeonWorld.plugin.getLogger()
-        //             .warning("createExplorerMap: " + structureType
-        //                      + " radius=" + radius
-        //                      + " findUnexplored=" + findUnexplored);
-        //         e.printStackTrace();
-        //         return;
-        //     }
-        //     if (item == null) return;
-        //     ItemMeta meta = item.getItemMeta();
-        //     meta.setDisplayName(Stream.of(structureType.getName().split("_"))
-        //                         .map(s -> s.substring(0, 1).toUpperCase()
-        //                              + s.substring(1).toLowerCase())
-        //                         .collect(Collectors.joining(" ")));
-        //     item.setItemMeta(meta);
-        //     dungeonWorld.plugin.getLogger()
-        //         .info("Bonus item: Treasure map: " + structureType.getName());
-        //     break;
-        // }
         default: return;
         }
-        inv.setItem(slot, item);
+        if (player.isOp()) {
+            player.sendMessage("BonusLoot: " + item.getType());
+        }
+        inv.setItem(slots.get(0), item);
     }
 
     /**

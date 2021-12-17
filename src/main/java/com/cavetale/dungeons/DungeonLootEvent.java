@@ -8,7 +8,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.Inventory;
 
-@Getter @RequiredArgsConstructor
+@Deprecated @Getter @RequiredArgsConstructor
 public final class DungeonLootEvent extends Event {
     private final Block block;
     private final Inventory inventory;
