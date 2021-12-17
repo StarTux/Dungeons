@@ -93,9 +93,6 @@ final class Manager implements Listener {
                 slots.add(i);
             }
         }
-        if (player.isOp()) {
-            player.sendMessage("addBonusLoot: " + slots);
-        }
         if (slots.isEmpty()) return;
         Collections.shuffle(slots, random);
         if (slots.size() >= 2 && random.nextDouble() < 0.3) {
@@ -145,9 +142,6 @@ final class Manager implements Listener {
             break;
         }
         default: return;
-        }
-        if (player.isOp()) {
-            player.sendMessage("BonusLoot: " + item.getType());
         }
         inv.setItem(slots.get(0), item);
     }
