@@ -33,7 +33,6 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
-import org.bukkit.loot.LootTables;
 
 @Getter @RequiredArgsConstructor
 final class Manager implements Listener {
@@ -50,10 +49,10 @@ final class Manager implements Listener {
      * with the custom LootTable tag is being opened.
      *
      * Policy: The first chest opened within any dungeon will be
-     * populated with bonus loot and marked with the standard loot tag
-     * (simple_dungeon).  The DungeonLootEvent and PluginPlayerEvent
-     * are called.  After that, the dungeon will be marked as looted,
-     * so that all additional chests will appear empty.
+     * populated with bonus loot.  The DungeonLootEvent and
+     * PluginPlayerEvent are called.  After that, the dungeon will be
+     * marked as looted, so that all additional chests will not
+     * contain bonus loot.
      */
     protected void onPlayerInteractChest(PlayerInteractEvent event) {
         if (event.useInteractedBlock() == Event.Result.DENY) return;
@@ -70,10 +69,6 @@ final class Manager implements Listener {
         dungeon.setRaided(true);
         dungeonWorld.savePersistence();
         final Chest chest = (Chest) state;
-        // Begin Temp fix
-        chest.setLootTable(LootTables.SIMPLE_DUNGEON.getLootTable());
-        chest.update();
-        // End Temp Fix
         Player player = event.getPlayer();
         PluginPlayerEvent.Name.DUNGEON_LOOT.call(dungeonWorld.plugin, player);
         Bukkit.getScheduler().runTask(dungeonWorld.plugin, () -> {
