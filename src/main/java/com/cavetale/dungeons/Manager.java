@@ -72,15 +72,15 @@ final class Manager implements Listener {
         Player player = event.getPlayer();
         PluginPlayerEvent.Name.DUNGEON_LOOT.call(dungeonWorld.plugin, player);
         Bukkit.getScheduler().runTask(dungeonWorld.plugin, () -> {
-                addBonusLoot(block, player);
+                if (!(block.getState() instanceof Chest chest2)) return;
+                Inventory inventory = chest2.getInventory();
+                addBonusLoot(inventory, player);
+                new DungeonLootEvent(block, inventory, player, dungeon).callEvent();
             });
     }
 
-    protected void addBonusLoot(Block block, Player player) {
-        BlockState state = block.getState();
-        if (!(state instanceof Chest chest)) return;
+    protected void addBonusLoot(Inventory inv, Player player) {
         Random random = ThreadLocalRandom.current();
-        Inventory inv = chest.getInventory();
         List<Integer> slots = new ArrayList<>(inv.getSize());
         for (int i = 0; i < inv.getSize(); i += 1) {
             ItemStack item = inv.getItem(i);
