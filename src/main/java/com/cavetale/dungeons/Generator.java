@@ -12,7 +12,6 @@ import java.util.Random;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -76,12 +75,13 @@ final class Generator implements Listener {
         return ls.size();
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onDecorator(DecoratorEvent event) {
+        if (event.getPass() != 2) return;
         if (dungeons.isEmpty()) return;
         Chunk chunk = event.getChunk();
         if (!chunk.getWorld().getName().equals(dungeonWorld.worldName)) return;
-        Bukkit.getScheduler().runTask(dungeonWorld.plugin, () -> trySpawnDungeon(chunk));
+        trySpawnDungeon(chunk);
     }
 
     protected boolean trySpawnDungeon(Chunk chunk) {
