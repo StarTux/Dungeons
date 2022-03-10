@@ -5,7 +5,6 @@ import com.cavetale.mytems.Mytems;
 import com.winthier.exploits.Exploits;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +12,6 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -29,14 +27,19 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.world.LootGenerateEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
+import org.bukkit.loot.LootContext;
+import org.bukkit.loot.LootTable;
+import org.bukkit.loot.LootTables;
 
 @Getter @RequiredArgsConstructor
 final class Manager implements Listener {
     final DungeonWorld dungeonWorld;
+    private Dungeon lootedDungeon = null;
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
@@ -63,35 +66,48 @@ final class Manager implements Listener {
         if (!block.getWorld().getName().equals(dungeonWorld.worldName)) return;
         if (Exploits.isPlayerPlaced(block)) return;
         BlockState state = block.getState();
-        if (!(state instanceof Chest)) return;
+        if (!(state instanceof Chest chest)) return;
         Dungeon dungeon = dungeonWorld.findDungeonAt(block);
         if (dungeon == null || dungeon.isRaided()) return;
         dungeon.setRaided(true);
         dungeonWorld.savePersistence();
-        final Chest chest = (Chest) state;
         Player player = event.getPlayer();
+        Inventory inventory = chest.getInventory();
+        chest.setLootTable(null);
+        chest.update();
+        LootContext context = new LootContext.Builder(block.getLocation())
+            .killer(player)
+            .build();
+        List<LootTable> lootTables = new ArrayList<>();
+        for (LootTables it : LootTables.values()) {
+            if (it.getKey().getKey().startsWith("chests/")) lootTables.add(it.getLootTable());
+        }
+        Random random = ThreadLocalRandom.current();
+        LootTable lootTable = !lootTables.isEmpty()
+            ? lootTables.get(random.nextInt(lootTables.size()))
+            : LootTables.SIMPLE_DUNGEON.getLootTable();
+        dungeonWorld.plugin.getLogger().info("Loot table: " + lootTable.getKey());
+        try {
+            lootedDungeon = dungeon;
+            lootTable.fillInventory(inventory, random, context);
+        } finally {
+            lootedDungeon = null;
+        }
         PluginPlayerEvent.Name.DUNGEON_LOOT.call(dungeonWorld.plugin, player);
-        Bukkit.getScheduler().runTask(dungeonWorld.plugin, () -> {
-                if (!(block.getState() instanceof Chest chest2)) return;
-                Inventory inventory = chest2.getInventory();
-                addBonusLoot(inventory, player);
-                new DungeonLootEvent(block, inventory, player, dungeon).callEvent();
-            });
     }
 
-    protected void addBonusLoot(Inventory inv, Player player) {
+    @EventHandler(ignoreCancelled = true)
+    private void onLootGenerate(LootGenerateEvent event) {
+        if (lootedDungeon == null) return;
+        List<ItemStack> loot = event.getLoot();
+        new DungeonLootEvent(event.getLootContext().getLocation().getBlock(),
+                             event.getInventoryHolder().getInventory(),
+                             (Player) event.getLootContext().getKiller(),
+                             lootedDungeon,
+                             loot).callEvent();
         Random random = ThreadLocalRandom.current();
-        List<Integer> slots = new ArrayList<>(inv.getSize());
-        for (int i = 0; i < inv.getSize(); i += 1) {
-            ItemStack item = inv.getItem(i);
-            if (item == null || item.getType() == Material.AIR) {
-                slots.add(i);
-            }
-        }
-        if (slots.isEmpty()) return;
-        Collections.shuffle(slots, random);
-        if (slots.size() >= 2 && random.nextDouble() < 0.3) {
-            inv.setItem(slots.get(1), Mytems.KITTY_COIN.createItemStack());
+        if (random.nextDouble() < 0.3) {
+            loot.add(Mytems.KITTY_COIN.createItemStack());
         }
         final ItemStack item;
         switch (random.nextInt(2)) {
@@ -133,12 +149,12 @@ final class Manager implements Listener {
             meta.addStoredEnchant(ench, level, true);
             item.setItemMeta(meta);
             dungeonWorld.plugin.getLogger()
-                .info("Bonus item: Enchanted book: " + ench + " " + level);
+                .info("Bonus item: Enchanted book: " + ench.getKey().getKey() + " " + level);
             break;
         }
         default: return;
         }
-        inv.setItem(slots.get(0), item);
+        loot.add(item);
     }
 
     /**
