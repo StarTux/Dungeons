@@ -101,7 +101,6 @@ final class Manager implements Listener {
         if (lootedDungeon == null) return;
         List<ItemStack> loot = event.getLoot();
         new DungeonLootEvent(event.getLootContext().getLocation().getBlock(),
-                             event.getInventoryHolder().getInventory(),
                              (Player) event.getLootContext().getKiller(),
                              lootedDungeon,
                              loot).callEvent();

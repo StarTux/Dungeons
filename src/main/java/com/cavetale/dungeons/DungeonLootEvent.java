@@ -8,7 +8,6 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -18,7 +17,6 @@ import org.bukkit.inventory.ItemStack;
 @Getter @RequiredArgsConstructor
 public final class DungeonLootEvent extends Event {
     private final Block block;
-    private final Inventory inventory;
     private final Player player;
     private final Dungeon dungeon;
     private final List<ItemStack> loot;
