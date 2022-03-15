@@ -80,7 +80,10 @@ final class Manager implements Listener {
             .build();
         List<LootTable> lootTables = new ArrayList<>();
         for (LootTables it : LootTables.values()) {
-            if (it.getKey().getKey().startsWith("chests/")) lootTables.add(it.getLootTable());
+            if (!it.getKey().getKey().startsWith("chests/")) continue;
+            if (it == LootTables.JUNGLE_TEMPLE_DISPENSER) continue;
+            if (it == LootTables.SPAWN_BONUS_CHEST) continue;
+            lootTables.add(it.getLootTable());
         }
         Random random = ThreadLocalRandom.current();
         LootTable lootTable = !lootTables.isEmpty()
@@ -100,6 +103,7 @@ final class Manager implements Listener {
     private void onLootGenerate(LootGenerateEvent event) {
         if (lootedDungeon == null) return;
         List<ItemStack> loot = event.getLoot();
+        loot.removeIf(it -> it != null && it.getType() == Material.FILLED_MAP);
         new DungeonLootEvent(event.getLootContext().getLocation().getBlock(),
                              (Player) event.getLootContext().getKiller(),
                              lootedDungeon,
