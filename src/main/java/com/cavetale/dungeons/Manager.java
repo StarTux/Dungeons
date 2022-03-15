@@ -83,6 +83,10 @@ final class Manager implements Listener {
             if (!it.getKey().getKey().startsWith("chests/")) continue;
             if (it == LootTables.JUNGLE_TEMPLE_DISPENSER) continue;
             if (it == LootTables.SPAWN_BONUS_CHEST) continue;
+            // These contain treasure maps:
+            if (it == LootTables.SHIPWRECK_MAP) continue;
+            if (it == LootTables.UNDERWATER_RUIN_BIG) continue;
+            if (it == LootTables.UNDERWATER_RUIN_SMALL) continue;
             lootTables.add(it.getLootTable());
         }
         Random random = ThreadLocalRandom.current();
