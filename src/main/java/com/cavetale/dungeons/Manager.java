@@ -9,9 +9,11 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -40,6 +42,7 @@ import org.bukkit.loot.LootTables;
 final class Manager implements Listener {
     final DungeonWorld dungeonWorld;
     private Dungeon lootedDungeon = null;
+    private UUID lootingPlayer = null;
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
@@ -96,9 +99,11 @@ final class Manager implements Listener {
         dungeonWorld.plugin.getLogger().info("Loot table: " + lootTable.getKey());
         try {
             lootedDungeon = dungeon;
+            lootingPlayer = player.getUniqueId();
             lootTable.fillInventory(inventory, random, context);
         } finally {
             lootedDungeon = null;
+            lootingPlayer = null;
         }
         PluginPlayerEvent.Name.DUNGEON_LOOT.call(dungeonWorld.plugin, player);
     }
@@ -109,7 +114,7 @@ final class Manager implements Listener {
         List<ItemStack> loot = event.getLoot();
         loot.removeIf(it -> it != null && it.getType() == Material.FILLED_MAP);
         new DungeonLootEvent(event.getLootContext().getLocation().getBlock(),
-                             (Player) event.getLootContext().getKiller(),
+                             Bukkit.getPlayer(lootingPlayer),
                              lootedDungeon,
                              loot).callEvent();
         Random random = ThreadLocalRandom.current();
