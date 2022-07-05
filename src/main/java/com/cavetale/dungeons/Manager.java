@@ -2,7 +2,6 @@ package com.cavetale.dungeons;
 
 import com.cavetale.core.event.player.PluginPlayerEvent;
 import com.cavetale.mytems.Mytems;
-import com.winthier.exploits.Exploits;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -28,6 +27,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.LootGenerateEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -37,6 +37,7 @@ import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.loot.LootContext;
 import org.bukkit.loot.LootTable;
 import org.bukkit.loot.LootTables;
+import static com.cavetale.core.exploits.PlayerPlacedBlocks.isPlayerPlaced;
 
 @Getter @RequiredArgsConstructor
 final class Manager implements Listener {
@@ -48,6 +49,17 @@ final class Manager implements Listener {
     public void onPlayerInteract(PlayerInteractEvent event) {
         onPlayerInteractChest(event);
         onPlayerInteractCompass(event);
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    protected void onBlockBreak(BlockBreakEvent event) {
+        Block block = event.getBlock();
+        if (!block.getWorld().getName().equals(dungeonWorld.worldName)) return;
+        if (block.getType() == Material.STONE) return;
+        Dungeon dungeon = dungeonWorld.findDungeonAt(block);
+        if (dungeon == null || dungeon.isDiscovered()) return;
+        dungeon.setDiscovered(true);
+        dungeonWorld.savePersistence();
     }
 
     /**
@@ -67,7 +79,7 @@ final class Manager implements Listener {
         Block block = event.getClickedBlock();
         if (block == null) return;
         if (!block.getWorld().getName().equals(dungeonWorld.worldName)) return;
-        if (Exploits.isPlayerPlaced(block)) return;
+        if (isPlayerPlaced(block)) return;
         BlockState state = block.getState();
         if (!(state instanceof Chest chest)) return;
         Dungeon dungeon = dungeonWorld.findDungeonAt(block);

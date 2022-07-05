@@ -1,14 +1,14 @@
 main: com.cavetale.dungeons.DungeonsPlugin
 name: Dungeons
 version: 0.1
-api-version: 1.18
+api-version: 1.19
 
 description: Spawn custom dungeons
 author: StarTux
 website: https://cavetale.com
 
 depend: []
-softdepend: [Core, Decorator, BlockClip, Worlds, Exploits, Mytems]
+softdepend: [Core, Decorator, BlockClip, Worlds, Mytems]
 
 commands:
 

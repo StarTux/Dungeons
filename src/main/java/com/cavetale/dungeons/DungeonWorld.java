@@ -27,7 +27,7 @@ final class DungeonWorld {
         List<Dungeon> dungeons = new ArrayList<>();
     }
 
-    void loadPersistence() {
+    public void loadPersistence() {
         World world = Bukkit.getWorld(worldName);
         if (world == null) throw new IllegalStateException("World not loaded: " + worldName);
         File file = new File(world.getWorldFolder(), "dungeons.json");
@@ -45,7 +45,7 @@ final class DungeonWorld {
         }
     }
 
-    void savePersistence() {
+    public void savePersistence() {
         World world = Bukkit.getWorld(worldName);
         File dir = world.getWorldFolder();
         final File file = new File(world.getWorldFolder(), "dungeons.json");
@@ -64,7 +64,7 @@ final class DungeonWorld {
             });
     }
 
-    Dungeon findDungeonAt(Block block) {
+    public Dungeon findDungeonAt(Block block) {
         int x = block.getX();
         int y = block.getY();
         int z = block.getZ();
@@ -81,13 +81,14 @@ final class DungeonWorld {
         return null;
     }
 
-    Dungeon findNearestDungeon(Location location, boolean unraidedOnly) {
+    public Dungeon findNearestDungeon(Location location, boolean unraidedOnly) {
         int x = location.getBlockX();
         int z = location.getBlockZ();
         Dungeon nearestDungeon = null;
         int minDist = 0;
         for (Dungeon dungeon: persistence.getDungeons()) {
             if (unraidedOnly && dungeon.isRaided()) continue;
+            if (unraidedOnly && dungeon.isDiscovered()) continue;
             int dist = Math.max(Math.abs(dungeon.lo.get(0) - x), Math.abs(dungeon.lo.get(2) - z));
             if (nearestDungeon == null || dist < minDist) {
                 nearestDungeon = dungeon;
