@@ -16,18 +16,22 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
+import org.bukkit.block.CreatureSpawner;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.entity.SpawnerSpawnEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.LootGenerateEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -37,6 +41,7 @@ import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.loot.LootContext;
 import org.bukkit.loot.LootTable;
 import org.bukkit.loot.LootTables;
+import org.bukkit.persistence.PersistentDataType;
 import static com.cavetale.core.exploits.PlayerPlacedBlocks.isPlayerPlaced;
 
 @Getter @RequiredArgsConstructor
@@ -221,5 +226,42 @@ final class Manager implements Listener {
             player.sendMessage(ChatColor.GOLD
                                + "Your compass points to a nearby dungeon.");
         }
+    }
+
+    private static final EntityType[] SPAWNED_TYPES = new EntityType[] {
+        EntityType.CAVE_SPIDER,
+        EntityType.SPIDER,
+        EntityType.ZOMBIE,
+        EntityType.SKELETON,
+        EntityType.CREEPER,
+    };
+
+    private static final NamespacedKey SPAWNED_KEY = NamespacedKey.fromString("dungeons:spawned");
+
+    @EventHandler
+    private void onSpawnerSpawn(SpawnerSpawnEvent event) {
+        final Block block = event.getSpawner().getBlock();
+        if (!block.getWorld().getName().equals(dungeonWorld.worldName)) return;
+        Dungeon dungeon = dungeonWorld.findDungeonAt(block);
+        if (dungeon == null) return;
+        Bukkit.getScheduler().runTask(dungeonWorld.plugin, () -> {
+                if (!(block.getState() instanceof CreatureSpawner spawner)) return;
+                Random random = ThreadLocalRandom.current();
+                int spawned = spawner.getPersistentDataContainer().getOrDefault(SPAWNED_KEY, PersistentDataType.INTEGER, 0);
+                spawner.getPersistentDataContainer().set(SPAWNED_KEY, PersistentDataType.INTEGER, spawned + 1);
+                EntityType spawnedType = SPAWNED_TYPES[random.nextInt(SPAWNED_TYPES.length)];
+                spawner.setSpawnedType(spawnedType);
+                spawner.update();
+                if (spawned > 10) {
+                    double blastChance = 1.0 - 10.0 / spawned;
+                    if (random.nextDouble() < blastChance) {
+                        dungeonWorld.plugin.getLogger().info("Exploding spawner at"
+                                                             + " " + block.getX()
+                                                             + " " + block.getY()
+                                                             + " " + block.getZ());
+                        block.getWorld().createExplosion(block.getLocation().add(0.5, 0.5, 0.5), 6f);
+                    }
+                }
+            });
     }
 }
