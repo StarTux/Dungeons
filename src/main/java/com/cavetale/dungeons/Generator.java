@@ -1,6 +1,7 @@
 package com.cavetale.dungeons;
 
 import com.cavetale.blockclip.BlockClip;
+import com.cavetale.core.structure.Structures;
 import com.winthier.decorator.DecoratorEvent;
 import java.io.File;
 import java.util.ArrayList;
@@ -139,6 +140,9 @@ final class Generator implements Listener {
                     case MOSS_BLOCK:
                         return false;
                     default: break;
+                    }
+                    if (Structures.get().structurePartAt(block)) {
+                        return false;
                     }
                     if (y == 0 || y == uy) {
                         if (block.isEmpty()) return false;
