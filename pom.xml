@@ -106,5 +106,13 @@
       <scope>provided</scope>
     </dependency>
 
+    <!-- Structure -->
+    <dependency>
+      <groupId>com.cavetale.structure</groupId>
+      <artifactId>structure</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+
   </dependencies>
 </project>

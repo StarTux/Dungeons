@@ -2,6 +2,8 @@ package com.cavetale.dungeons;
 
 import com.cavetale.core.event.player.PluginPlayerEvent;
 import com.cavetale.mytems.Mytems;
+import com.cavetale.structure.cache.Structure;
+import com.cavetale.structure.struct.Cuboid;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -13,7 +15,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -43,12 +44,18 @@ import org.bukkit.loot.LootTable;
 import org.bukkit.loot.LootTables;
 import org.bukkit.persistence.PersistentDataType;
 import static com.cavetale.core.exploits.PlayerPlacedBlocks.isPlayerPlaced;
+import static com.cavetale.dungeons.DungeonsPlugin.DUNGEON_KEY;
+import static com.cavetale.dungeons.DungeonsPlugin.dungeonsPlugin;
+import static com.cavetale.structure.StructurePlugin.structureCache;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 @Getter @RequiredArgsConstructor
 final class Manager implements Listener {
-    final DungeonWorld dungeonWorld;
+    private final String worldName;
     private Dungeon lootedDungeon = null;
     private UUID lootingPlayer = null;
+    private final Random random = ThreadLocalRandom.current();
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
@@ -59,12 +66,14 @@ final class Manager implements Listener {
     @EventHandler(ignoreCancelled = true)
     protected void onBlockBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
-        if (!block.getWorld().getName().equals(dungeonWorld.worldName)) return;
+        if (!block.getWorld().getName().equals(worldName)) return;
         if (block.getType() == Material.STONE) return;
-        Dungeon dungeon = dungeonWorld.findDungeonAt(block);
-        if (dungeon == null || dungeon.isDiscovered()) return;
+        Structure structure = structureCache().at(block);
+        if (structure == null || !DUNGEON_KEY.equals(structure.getKey())) return;
+        Dungeon dungeon = structure.getJsonData(Dungeon.class, Dungeon::new);
+        if (dungeon.isDiscovered()) return;
         dungeon.setDiscovered(true);
-        dungeonWorld.savePersistence();
+        structure.saveJsonData();
     }
 
     /**
@@ -83,14 +92,18 @@ final class Manager implements Listener {
         if (event.getHand() != EquipmentSlot.HAND) return;
         Block block = event.getClickedBlock();
         if (block == null) return;
-        if (!block.getWorld().getName().equals(dungeonWorld.worldName)) return;
+        if (!block.getWorld().getName().equals(worldName)) return;
         if (isPlayerPlaced(block)) return;
         BlockState state = block.getState();
         if (!(state instanceof Chest chest)) return;
-        Dungeon dungeon = dungeonWorld.findDungeonAt(block);
-        if (dungeon == null || dungeon.isRaided()) return;
+        // Check and update structure
+        Structure structure = structureCache().at(block);
+        if (structure == null || !DUNGEON_KEY.equals(structure.getKey())) return;
+        Dungeon dungeon = structure.getJsonData(Dungeon.class, Dungeon::new);
+        if (dungeon.isRaided()) return;
         dungeon.setRaided(true);
-        dungeonWorld.savePersistence();
+        structure.saveJsonData();
+        // Do the loot
         Player player = event.getPlayer();
         Inventory inventory = chest.getInventory();
         chest.setLootTable(null);
@@ -109,11 +122,10 @@ final class Manager implements Listener {
             if (it == LootTables.UNDERWATER_RUIN_SMALL) continue;
             lootTables.add(it.getLootTable());
         }
-        Random random = ThreadLocalRandom.current();
         LootTable lootTable = !lootTables.isEmpty()
             ? lootTables.get(random.nextInt(lootTables.size()))
             : LootTables.SIMPLE_DUNGEON.getLootTable();
-        dungeonWorld.plugin.getLogger().info("Loot table: " + lootTable.getKey());
+        dungeonsPlugin().getLogger().info("Loot table: " + lootTable.getKey());
         try {
             lootedDungeon = dungeon;
             lootingPlayer = player.getUniqueId();
@@ -122,7 +134,7 @@ final class Manager implements Listener {
             lootedDungeon = null;
             lootingPlayer = null;
         }
-        PluginPlayerEvent.Name.DUNGEON_LOOT.call(dungeonWorld.plugin, player);
+        PluginPlayerEvent.Name.DUNGEON_LOOT.call(dungeonsPlugin(), player);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -134,7 +146,6 @@ final class Manager implements Listener {
                              Bukkit.getPlayer(lootingPlayer),
                              lootedDungeon,
                              loot).callEvent();
-        Random random = ThreadLocalRandom.current();
         if (random.nextDouble() < 0.3) {
             loot.add(Mytems.KITTY_COIN.createItemStack());
         }
@@ -164,8 +175,7 @@ final class Manager implements Listener {
             int amount = map.get(mat);
             if (amount > 1) amount -= random.nextInt(amount);
             item = new ItemStack(mat, amount);
-            dungeonWorld.plugin.getLogger()
-                .info("Bonus item: " + mat + "x" + amount);
+            dungeonsPlugin().getLogger().info("Bonus item: " + mat + "x" + amount);
             break;
         }
         case 1: {
@@ -177,8 +187,7 @@ final class Manager implements Listener {
             EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
             meta.addStoredEnchant(ench, level, true);
             item.setItemMeta(meta);
-            dungeonWorld.plugin.getLogger()
-                .info("Bonus item: Enchanted book: " + ench.getKey().getKey() + " " + level);
+            dungeonsPlugin().getLogger().info("Bonus item: Enchanted book: " + ench.getKey().getKey() + " " + level);
             break;
         }
         default: return;
@@ -194,37 +203,44 @@ final class Manager implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK
             && event.getAction() != Action.RIGHT_CLICK_AIR) return;
         Player player = event.getPlayer();
-        if (!player.getWorld().getName().equals(dungeonWorld.worldName)) return;
+        if (!player.getWorld().getName().equals(worldName)) return;
         ItemStack item = event.getItem();
         if (item == null || item.getType() != Material.COMPASS) return;
         Location location = player.getLocation();
-        Dungeon dungeon = dungeonWorld.findNearestDungeon(location, true);
-        if (dungeon == null) return;
-        if (dungeon.hi.get(1) < location.getBlockY()) {
-            player.sendMessage(ChatColor.RED + "You are too high up to locate dungeons.");
+        if (location.getBlockY() > 48) {
+            player.sendMessage(text("You are too high up to locate dungeons", RED));
             player.playSound(player.getEyeLocation(),
                              Sound.UI_BUTTON_CLICK, SoundCategory.MASTER,
                              0.5f, 2.0f);
             return;
         }
-        int tx = (dungeon.lo.get(0) + dungeon.hi.get(0)) / 2;
-        int tz = (dungeon.lo.get(2) + dungeon.hi.get(2)) / 2;
+        final int margin = 100;
+        List<Structure> structures = structureCache().within(worldName,
+                                                             new Cuboid(location.getBlockX() - margin,
+                                                                        location.getWorld().getMinHeight(),
+                                                                        location.getBlockZ() - margin,
+                                                                        location.getBlockX() + margin,
+                                                                        location.getWorld().getMaxHeight(),
+                                                                        location.getBlockZ() + margin),
+                                                             DUNGEON_KEY);
+        if (structures.isEmpty()) {
+            player.sendMessage(text("There are no dungeons in range", RED));
+            return;
+        }
+        Structure structure = structures.get(random.nextInt(structures.size()));
+        Cuboid boundingBox = structure.getBoundingBox();
+        int tx = (boundingBox.ax + boundingBox.bx) / 2;
+        int tz = (boundingBox.az + boundingBox.bz) / 2;
         int dx = tx - location.getBlockX();
         int dz = tz - location.getBlockZ();
-        Location target = new Location(location.getWorld(),
-                                       (double) tx, location.getY(), (double) tz);
+        Location target = new Location(location.getWorld(), (double) tx, location.getY(), (double) tz);
         player.setCompassTarget(target);
         if (Math.abs(dx) < 8 && Math.abs(dz) < 8) {
-            player.playSound(player.getEyeLocation(),
-                             Sound.BLOCK_NOTE_BLOCK_BELL, SoundCategory.MASTER,
-                             0.5f, 0.7f);
-            player.sendMessage(ChatColor.GOLD + "A dungeon is very close!");
+            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, SoundCategory.MASTER, 0.5f, 0.7f);
+            player.sendMessage(text("A dungeon is very close!", GOLD));
         } else {
-            player.playSound(player.getEyeLocation(),
-                             Sound.UI_TOAST_IN, SoundCategory.MASTER,
-                             0.5f, 2.0f);
-            player.sendMessage(ChatColor.GOLD
-                               + "Your compass points to a nearby dungeon.");
+            player.playSound(player.getLocation(), Sound.UI_TOAST_IN, SoundCategory.MASTER, 0.5f, 2.0f);
+            player.sendMessage(text("Your compass points to a nearby dungeon", GOLD));
         }
     }
 
@@ -241,12 +257,11 @@ final class Manager implements Listener {
     @EventHandler
     private void onSpawnerSpawn(SpawnerSpawnEvent event) {
         final Block block = event.getSpawner().getBlock();
-        if (!block.getWorld().getName().equals(dungeonWorld.worldName)) return;
-        Dungeon dungeon = dungeonWorld.findDungeonAt(block);
-        if (dungeon == null) return;
-        Bukkit.getScheduler().runTask(dungeonWorld.plugin, () -> {
+        if (!block.getWorld().getName().equals(worldName)) return;
+        Structure structure = structureCache().at(block);
+        if (structure == null || !DUNGEON_KEY.equals(structure.getKey())) return;
+        Bukkit.getScheduler().runTask(dungeonsPlugin(), () -> {
                 if (!(block.getState() instanceof CreatureSpawner spawner)) return;
-                Random random = ThreadLocalRandom.current();
                 int spawned = spawner.getPersistentDataContainer().getOrDefault(SPAWNED_KEY, PersistentDataType.INTEGER, 0);
                 spawner.getPersistentDataContainer().set(SPAWNED_KEY, PersistentDataType.INTEGER, spawned + 1);
                 EntityType spawnedType = SPAWNED_TYPES[random.nextInt(SPAWNED_TYPES.length)];
@@ -255,10 +270,10 @@ final class Manager implements Listener {
                 if (spawned > 10) {
                     double blastChance = 1.0 - 10.0 / spawned;
                     if (random.nextDouble() < blastChance) {
-                        dungeonWorld.plugin.getLogger().info("Exploding spawner at"
-                                                             + " " + block.getX()
-                                                             + " " + block.getY()
-                                                             + " " + block.getZ());
+                        dungeonsPlugin().getLogger().info("Exploding spawner at"
+                                                          + " " + block.getX()
+                                                          + " " + block.getY()
+                                                          + " " + block.getZ());
                         block.getWorld().createExplosion(block.getLocation().add(0.5, 0.5, 0.5), 6f);
                     }
                 }

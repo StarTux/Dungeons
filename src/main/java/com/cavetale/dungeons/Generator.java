@@ -1,11 +1,13 @@
 package com.cavetale.dungeons;
 
 import com.cavetale.blockclip.BlockClip;
-import com.cavetale.core.structure.Structures;
+import com.cavetale.core.util.Json;
+import com.cavetale.structure.cache.Structure;
+import com.cavetale.structure.struct.Cuboid;
+import com.cavetale.structure.struct.Vec2i;
 import com.winthier.decorator.DecoratorEvent;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -26,11 +28,14 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.loot.LootTables;
+import static com.cavetale.dungeons.DungeonsPlugin.DUNGEON_KEY;
+import static com.cavetale.dungeons.DungeonsPlugin.dungeonsPlugin;
+import static com.cavetale.structure.StructurePlugin.structureCache;
 
 @Getter @RequiredArgsConstructor
 final class Generator implements Listener {
-    final DungeonWorld dungeonWorld;
-    final int margin;
+    private final String worldName;
+    private final int margin;
     private ArrayList<DungeonClip> dungeons = new ArrayList<>();
     private int dungeonIndex = 0;
     private final Random random = new Random(System.nanoTime());
@@ -51,7 +56,7 @@ final class Generator implements Listener {
     protected int loadDungeons() {
         ArrayList<DungeonClip> ls = new ArrayList<>();
         HashSet<String> tags = new HashSet<>();
-        File dir = new File(dungeonWorld.plugin.getDataFolder(), "dungeons");
+        File dir = new File(dungeonsPlugin().getDataFolder(), "dungeons");
         dir.mkdirs();
         for (File file: dir.listFiles()) {
             String name = file.getName();
@@ -66,11 +71,11 @@ final class Generator implements Listener {
                 }
                 ls.add(new DungeonClip(name, clip));
             } catch (Exception e) {
-                dungeonWorld.plugin.getLogger().warning("Error loading " + file);
+                dungeonsPlugin().getLogger().warning("Error loading " + file);
                 e.printStackTrace();
             }
         }
-        if (ls.isEmpty()) dungeonWorld.plugin.getLogger().warning("No dungeons loaded!");
+        if (ls.isEmpty()) dungeonsPlugin().getLogger().warning("No dungeons loaded!");
         dungeons = ls;
         Collections.shuffle(dungeons, random);
         return ls.size();
@@ -81,7 +86,7 @@ final class Generator implements Listener {
         if (event.getPass() != 2) return;
         if (dungeons.isEmpty()) return;
         Chunk chunk = event.getChunk();
-        if (!chunk.getWorld().getName().equals(dungeonWorld.worldName)) return;
+        if (!chunk.getWorld().getName().equals(worldName)) return;
         trySpawnDungeon(chunk);
     }
 
@@ -106,23 +111,37 @@ final class Generator implements Listener {
         return false;
     }
 
+    /**
+     * Try to spawn dungeon in place.
+     * ox, oy, oz are world coordinates!
+     *
+     * @return true if dungeon was spawned, false otherwise
+     */
     protected boolean trySpawnDungeon(Chunk chunk, int ox, int oy, int oz) {
-        // Check proximity
-        for (Dungeon pd: dungeonWorld.persistence.dungeons) {
-            int ax = pd.lo.get(0) - margin;
-            int bx = pd.hi.get(0) + margin;
-            int az = pd.lo.get(2) - margin;
-            int bz = pd.hi.get(2) + margin;
-            if (ox >= ax && ox <= bx && oz >= az && oz <= bz) return false;
-        }
         // Pick dungeon
-        Block origin = chunk.getWorld().getBlockAt(ox, oy, oz);
         if (dungeonIndex >= dungeons.size()) dungeonIndex = 0;
-        DungeonClip dungeon = dungeons.get(dungeonIndex);
+        DungeonClip dungeonClip = dungeons.get(dungeonIndex);
+        Cuboid boundingBox = new Cuboid(ox,
+                                        oy,
+                                        oz,
+                                        ox + dungeonClip.clip.getSizeX() - 1,
+                                        oy + dungeonClip.clip.getSizeY() - 1,
+                                        oz + dungeonClip.clip.getSizeZ() - 1);
+        Cuboid checkBox = new Cuboid(boundingBox.ax - margin,
+                                     chunk.getWorld().getMinHeight(),
+                                     boundingBox.az - margin,
+                                     boundingBox.bx + margin,
+                                     chunk.getWorld().getMaxHeight(),
+                                     boundingBox.bz + margin);
+        for (Structure nearby : structureCache().within(worldName, checkBox)) {
+            if (nearby.getKey().equals(DUNGEON_KEY)) return false;
+            if (nearby.getBoundingBox().overlaps(boundingBox)) return false;
+        }
+        Block origin = chunk.getWorld().getBlockAt(ox, oy, oz);
         // Size - 1
-        final int ux = dungeon.clip.size().x - 1;
-        final int uy = dungeon.clip.size().y - 1;
-        final int uz = dungeon.clip.size().z - 1;
+        final int ux = dungeonClip.clip.size().x - 1;
+        final int uy = dungeonClip.clip.size().y - 1;
+        final int uz = dungeonClip.clip.size().z - 1;
         // Check out location
         for (int y = 0; y <= uy; y += 1) {
             for (int z = 0; z <= uz; z += 1) {
@@ -141,9 +160,6 @@ final class Generator implements Listener {
                         return false;
                     default: break;
                     }
-                    if (Structures.get().structurePartAt(block)) {
-                        return false;
-                    }
                     if (y == 0 || y == uy) {
                         if (block.isEmpty()) return false;
                     }
@@ -151,13 +167,15 @@ final class Generator implements Listener {
             }
         }
         dungeonIndex += 1; // no return
-        pasteDungeon(dungeon.clip, origin, random);
-        Dungeon pd;
-        pd = new Dungeon(dungeon.name,
-                         Arrays.asList(ox, oy, oz),
-                         Arrays.asList(ox + ux, oy + uy, oz + uz));
-        dungeonWorld.persistence.dungeons.add(pd);
-        dungeonWorld.savePersistence();
+        pasteDungeon(dungeonClip.clip, origin, random);
+        Dungeon dungeon = new Dungeon();
+        dungeon.setName(dungeonClip.name);
+        Structure structure = new Structure(worldName,
+                                            DUNGEON_KEY,
+                                            Vec2i.of(chunk.getX(), chunk.getZ()),
+                                            boundingBox,
+                                            Json.serialize(dungeon));
+        structureCache().addStructure(structure);
         return true;
     }
 
@@ -188,7 +206,7 @@ final class Generator implements Listener {
                 }
             }
         }
-        DungeonsPlugin.getInstance().getLogger()
+        dungeonsPlugin().getLogger()
             .info(origin.getWorld().getName() + ": Pasting dungeon "
                   + clip.getFilename() + " at"
                   + " " + (origin.getX() + clip.getSize().get(0) / 2)

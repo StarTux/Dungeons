@@ -7,11 +7,7 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 import lombok.Getter;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.World;
+import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -21,23 +17,26 @@ public final class DungeonsPlugin extends JavaPlugin {
     @Getter protected static DungeonsPlugin instance;
     private final ArrayList<Generator> generators = new ArrayList<>();
     private final ArrayList<Manager> managers = new ArrayList<>();
+    public static final NamespacedKey DUNGEON_KEY = NamespacedKey.fromString("dungeons:dungeon");
+
+    @Override
+    public void onLoad() {
+        instance = this;
+    }
 
     @Override
     public void onEnable() {
-        instance = this;
         reloadConfig();
         saveDefaultConfig();
         int margin = getConfig().getInt("margin");
-        for (String worldName: getConfig().getStringList("worlds")) {
-            DungeonWorld dungeonWorld = new DungeonWorld(this, worldName);
-            dungeonWorld.loadPersistence();
+        for (String worldName : getConfig().getStringList("worlds")) {
             if (getConfig().getBoolean("manage")) {
-                Manager manager = new Manager(dungeonWorld);
+                Manager manager = new Manager(worldName);
                 getServer().getPluginManager().registerEvents(manager, this);
                 managers.add(manager);
             }
             if (getConfig().getBoolean("generate")) {
-                Generator generator = new Generator(dungeonWorld, margin);
+                Generator generator = new Generator(worldName, margin);
                 int dc = generator.loadDungeons();
                 getServer().getPluginManager().registerEvents(generator, this);
                 generators.add(generator);
@@ -54,62 +53,11 @@ public final class DungeonsPlugin extends JavaPlugin {
         managers.clear();
     }
 
-    Manager managerOf(World world) {
-        for (Manager manager: managers) {
-            if (manager.dungeonWorld.getWorldName().equals(world.getName())) return manager;
-        }
-        return null;
-    }
-
     @Override
     public boolean onCommand(CommandSender sender, Command command, String alias, String[] args) {
         Player player = sender instanceof Player ? (Player) sender : null;
         if (args.length == 0) return false;
         switch (args[0]) {
-        case "locate": {
-            if (player == null) {
-                sender.sendMessage("Player expected");
-                return true;
-            }
-            int x = player.getLocation().getBlockX();
-            int z = player.getLocation().getBlockZ();
-            Manager manager = managerOf(player.getWorld());
-            if (manager == null) {
-                player.sendMessage("This world does not spawn dungeons.");
-                return true;
-            }
-            Dungeon nearest = manager.dungeonWorld.findNearestDungeon(player.getLocation(), false);
-            if (nearest == null) {
-                player.sendMessage("No dungeon found");
-            } else {
-                int dx = (nearest.lo.get(0) + nearest.hi.get(0)) / 2;
-                int dy = (nearest.lo.get(1) + nearest.hi.get(1)) / 2;
-                int dz = (nearest.lo.get(2) + nearest.hi.get(2)) / 2;
-                String cmd = "/tp " + dx + " " + dy + " " + dz;
-                player.sendMessage(Component.text("Nearest dungeon: " + nearest.toString(), NamedTextColor.YELLOW)
-                                   .hoverEvent(HoverEvent.showText(Component.text(cmd, NamedTextColor.YELLOW)))
-                                   .clickEvent(ClickEvent.suggestCommand(cmd)));
-            }
-            return true;
-        }
-        case "info": {
-            if (player == null) {
-                sender.sendMessage("Player expected");
-                return true;
-            }
-            Manager manager = managerOf(player.getWorld());
-            if (manager == null) {
-                player.sendMessage("This world does not spawn dungeons.");
-                return true;
-            }
-            Dungeon dungeon = manager.dungeonWorld.findDungeonAt(player.getLocation().getBlock());
-            if (dungeon == null) {
-                player.sendMessage("There is no dungeon here");
-            } else {
-                player.sendMessage("Current dungeon: " + dungeon.toString());
-            }
-            return true;
-        }
         case "paste": {
             File dir = new File(getDataFolder(), "dungeons");
             File file = new File(dir, args[1] + ".json");
@@ -127,6 +75,10 @@ public final class DungeonsPlugin extends JavaPlugin {
             return true;
         }
         default: return false;
-        } // switch (args[0])
-    } // onCommand
+        }
+    }
+
+    public static DungeonsPlugin dungeonsPlugin() {
+        return instance;
+    }
 }

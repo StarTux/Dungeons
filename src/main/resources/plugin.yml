@@ -7,7 +7,7 @@ description: Spawn custom dungeons
 author: StarTux
 website: https://cavetale.com
 
-depend: [Core]
+depend: [Core, Structure]
 softdepend: [Decorator, BlockClip, Worlds, Mytems]
 
 commands:
