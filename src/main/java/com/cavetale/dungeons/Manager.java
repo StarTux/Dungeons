@@ -1,9 +1,9 @@
 package com.cavetale.dungeons;
 
 import com.cavetale.core.event.player.PluginPlayerEvent;
+import com.cavetale.core.struct.Cuboid;
 import com.cavetale.mytems.Mytems;
 import com.cavetale.structure.cache.Structure;
-import com.cavetale.structure.struct.Cuboid;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;

@@ -1,10 +1,10 @@
 package com.cavetale.dungeons;
 
 import com.cavetale.blockclip.BlockClip;
+import com.cavetale.core.struct.Cuboid;
+import com.cavetale.core.struct.Vec2i;
 import com.cavetale.core.util.Json;
 import com.cavetale.structure.cache.Structure;
-import com.cavetale.structure.struct.Cuboid;
-import com.cavetale.structure.struct.Vec2i;
 import com.winthier.decorator.DecoratorEvent;
 import java.io.File;
 import java.util.ArrayList;
