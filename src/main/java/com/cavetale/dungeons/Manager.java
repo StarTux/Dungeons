@@ -53,6 +53,7 @@ import static net.kyori.adventure.text.format.NamedTextColor.*;
 @Getter @RequiredArgsConstructor
 final class Manager implements Listener {
     private final String worldName;
+    private Cuboid lootedBoundingBox = null;
     private Dungeon lootedDungeon = null;
     private UUID lootingPlayer = null;
     private final Random random = ThreadLocalRandom.current();
@@ -128,10 +129,12 @@ final class Manager implements Listener {
         dungeonsPlugin().getLogger().info("Loot table: " + lootTable.getKey());
         try {
             lootedDungeon = dungeon;
+            lootedBoundingBox = structure.getBoundingBox();
             lootingPlayer = player.getUniqueId();
             lootTable.fillInventory(inventory, random, context);
         } finally {
             lootedDungeon = null;
+            lootedBoundingBox = null;
             lootingPlayer = null;
         }
         PluginPlayerEvent.Name.DUNGEON_LOOT.call(dungeonsPlugin(), player);
@@ -145,6 +148,7 @@ final class Manager implements Listener {
         new DungeonLootEvent(event.getLootContext().getLocation().getBlock(),
                              Bukkit.getPlayer(lootingPlayer),
                              lootedDungeon,
+                             lootedBoundingBox,
                              loot).callEvent();
         if (random.nextDouble() < 0.3) {
             loot.add(Mytems.KITTY_COIN.createItemStack());

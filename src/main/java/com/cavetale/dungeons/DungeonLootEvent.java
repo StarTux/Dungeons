@@ -1,5 +1,6 @@
 package com.cavetale.dungeons;
 
+import com.cavetale.core.struct.Cuboid;
 import java.util.List;
 import lombok.Getter;
 import lombok.NonNull;
@@ -19,6 +20,7 @@ public final class DungeonLootEvent extends Event {
     private final Block block;
     private final Player player;
     private final Dungeon dungeon;
+    private final Cuboid boundingBox;
     private final List<ItemStack> loot;
 
     @Getter private static HandlerList handlerList = new HandlerList();
