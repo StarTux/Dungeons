@@ -219,7 +219,7 @@ final class Manager implements Listener {
                              0.5f, 2.0f);
             return;
         }
-        final int margin = 100;
+        final int margin = 160;
         List<Structure> structures = structureCache().within(worldName,
                                                              new Cuboid(location.getBlockX() - margin,
                                                                         location.getWorld().getMinHeight(),
@@ -236,12 +236,12 @@ final class Manager implements Listener {
         int minDistance = Integer.MAX_VALUE;
         final Vec3i playerVec = Vec3i.of(location);
         for (Structure it : structures) {
-            Dungeon dungeon = structure.getJsonData(Dungeon.class, Dungeon::new);
+            Dungeon dungeon = it.getJsonData(Dungeon.class, Dungeon::new);
             if (dungeon.isDiscovered() || dungeon.isRaided()) continue;
             Vec3i dungeonVec = it.getBoundingBox().getCenter();
             int dist = dungeonVec.distanceSquared(playerVec);
             if (dist < minDistance) {
-                structure = structure;
+                structure = it;
                 minDistance = dist;
             }
         }
