@@ -2,6 +2,7 @@ package com.cavetale.dungeons;
 
 import com.cavetale.core.event.player.PluginPlayerEvent;
 import com.cavetale.core.struct.Cuboid;
+import com.cavetale.core.struct.Vec3i;
 import com.cavetale.mytems.Mytems;
 import com.cavetale.structure.cache.Structure;
 import java.util.ArrayList;
@@ -231,7 +232,23 @@ final class Manager implements Listener {
             player.sendMessage(text("There are no dungeons in range", RED));
             return;
         }
-        Structure structure = structures.get(random.nextInt(structures.size()));
+        Structure structure = null;
+        int minDistance = Integer.MAX_VALUE;
+        final Vec3i playerVec = Vec3i.of(location);
+        for (Structure it : structures) {
+            Dungeon dungeon = structure.getJsonData(Dungeon.class, Dungeon::new);
+            if (dungeon.isDiscovered() || dungeon.isRaided()) continue;
+            Vec3i dungeonVec = it.getBoundingBox().getCenter();
+            int dist = dungeonVec.distanceSquared(playerVec);
+            if (dist < minDistance) {
+                structure = structure;
+                minDistance = dist;
+            }
+        }
+        if (structure == null) {
+            player.sendMessage(text("There are no dungeons in range", RED));
+            return;
+        }
         Cuboid boundingBox = structure.getBoundingBox();
         int tx = (boundingBox.ax + boundingBox.bx) / 2;
         int tz = (boundingBox.az + boundingBox.bz) / 2;
