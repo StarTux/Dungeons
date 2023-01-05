@@ -1,15 +1,13 @@
 package com.cavetale.dungeons;
 
 import com.cavetale.core.event.player.PluginPlayerEvent;
+import com.cavetale.core.item.ItemKinds;
 import com.cavetale.core.struct.Cuboid;
 import com.cavetale.core.struct.Vec3i;
 import com.cavetale.mytems.Mytems;
 import com.cavetale.structure.cache.Structure;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -141,6 +139,8 @@ final class Manager implements Listener {
         PluginPlayerEvent.Name.DUNGEON_LOOT.call(dungeonsPlugin(), player);
     }
 
+    private static final int BASE_CHANCE = 3;
+
     @EventHandler(ignoreCancelled = true)
     private void onLootGenerate(LootGenerateEvent event) {
         if (lootedDungeon == null) return;
@@ -151,53 +151,68 @@ final class Manager implements Listener {
                              lootedDungeon,
                              lootedBoundingBox,
                              loot).callEvent();
-        if (random.nextDouble() < 0.3) {
-            loot.add(Mytems.KITTY_COIN.createItemStack());
-        }
-        final ItemStack item;
-        switch (random.nextInt(2)) {
-        case 0: {
-            // Simple item
-            Map<Material, Integer> map = new EnumMap<>(Material.class);
-            for (Material mat : Material.values()) {
-                if (mat.isRecord()) map.put(mat, 1);
+        final List<List<ItemStack>> pool = getLootPool();
+        final List<ItemStack> pool2 = pool.get(random.nextInt(pool.size()));
+        final ItemStack item = pool2.get(random.nextInt(pool2.size()));
+        if (item.getAmount() > 1) {
+            int amount = 1;
+            for (int i = 1; i < item.getAmount(); i += 1) {
+                if (random.nextBoolean()) amount += 1;
             }
-            map.put(Material.ENCHANTED_GOLDEN_APPLE, 1);
-            map.put(Material.WITHER_ROSE, 16);
-            map.put(Material.SPONGE, 16);
-            map.put(Material.WET_SPONGE, 4);
-            map.put(Material.HEART_OF_THE_SEA, 1);
-            map.put(Material.NAUTILUS_SHELL, 8);
-            map.put(Material.NETHER_STAR, 1);
-            map.put(Material.WITHER_SKELETON_SKULL, 1);
-            map.put(Material.DRAGON_EGG, 1);
-            map.put(Material.SHULKER_SHELL, 4);
-            map.put(Material.SCUTE, 5);
-            map.put(Material.ELYTRA, 1);
-            map.put(Material.TOTEM_OF_UNDYING, 1);
-            List<Material> list = new ArrayList<>(map.keySet());
-            Material mat = list.get(random.nextInt(list.size()));
-            int amount = map.get(mat);
-            if (amount > 1) amount -= random.nextInt(amount);
-            item = new ItemStack(mat, amount);
-            dungeonsPlugin().getLogger().info("Bonus item: " + mat + "x" + amount);
-            break;
+            item.setAmount(amount);
         }
-        case 1: {
-            // Enchanted book
-            List<Enchantment> list = Arrays.asList(Enchantment.values());
-            Enchantment ench = list.get(random.nextInt(list.size()));
-            int level = ench.getMaxLevel();
-            item = new ItemStack(Material.ENCHANTED_BOOK);
-            EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
-            meta.addStoredEnchant(ench, level, true);
-            item.setItemMeta(meta);
-            dungeonsPlugin().getLogger().info("Bonus item: Enchanted book: " + ench.getKey().getKey() + " " + level);
-            break;
-        }
-        default: return;
-        }
+        dungeonsPlugin().getLogger().info("Bonus item: " + item.getAmount() + "x" + ItemKinds.name(item));
         loot.add(item);
+    }
+
+    private static List<List<ItemStack>> getLootPool() {
+        final List<ItemStack> dud = new ArrayList<>();
+        final List<ItemStack> books = new ArrayList<>();
+        final List<ItemStack> treasure = new ArrayList<>();
+        final List<ItemStack> rare = new ArrayList<>();
+        // Random Common Items
+        dud.add(new ItemStack(Material.SPONGE, 16));
+        dud.add(new ItemStack(Material.BONE, 64));
+        dud.add(new ItemStack(Material.BONE_BLOCK, 64));
+        dud.add(new ItemStack(Material.GUNPOWDER, 64));
+        dud.add(new ItemStack(Material.TNT, 64));
+        dud.add(new ItemStack(Material.ARROW, 64));
+        dud.add(new ItemStack(Material.WITHER_SKELETON_SKULL));
+        dud.add(new ItemStack(Material.SADDLE));
+        dud.add(new ItemStack(Material.GHAST_TEAR, 16));
+        dud.add(Mytems.COPPER_COIN.createItemStack(64));
+        // Discs
+        for (Material mat : Material.values()) {
+            if (mat.isRecord()) {
+                dud.add(new ItemStack(mat));
+            }
+        }
+        // Enchanted books
+        for (Enchantment enchantment : Enchantment.values()) {
+            if (enchantment.isCursed()) continue;
+            final ItemStack book = new ItemStack(Material.ENCHANTED_BOOK);
+            book.editMeta(m -> {
+                    final EnchantmentStorageMeta meta = (EnchantmentStorageMeta) m;
+                    meta.addStoredEnchant(enchantment, enchantment.getMaxLevel(), true);
+                });
+            books.add(book);
+        }
+        // Treasure
+        treasure.add(new ItemStack(Material.ENCHANTED_GOLDEN_APPLE));
+        treasure.add(new ItemStack(Material.TOTEM_OF_UNDYING));
+        treasure.add(new ItemStack(Material.SHULKER_SHELL));
+        treasure.add(Mytems.RUBY.createItemStack(8));
+        treasure.add(Mytems.SILVER_COIN.createItemStack(64));
+        treasure.add(Mytems.GOLDEN_COIN.createItemStack(16));
+        treasure.add(Mytems.DIAMOND_COIN.createItemStack());
+        // Rare
+        rare.add(new ItemStack(Material.NETHER_STAR));
+        rare.add(new ItemStack(Material.DRAGON_EGG));
+        rare.add(new ItemStack(Material.ELYTRA));
+        rare.add(Mytems.RUBY_COIN.createItemStack());
+        rare.add(Mytems.KITTY_COIN.createItemStack());
+        rare.add(new ItemStack(Material.HEART_OF_THE_SEA));
+        return List.of(dud, books, treasure, rare);
     }
 
     /**
