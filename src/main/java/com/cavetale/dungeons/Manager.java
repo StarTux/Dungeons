@@ -2,6 +2,7 @@ package com.cavetale.dungeons;
 
 import com.cavetale.core.event.dungeon.DungeonDiscoverEvent;
 import com.cavetale.core.event.player.PluginPlayerEvent;
+import com.cavetale.core.font.VanillaItems;
 import com.cavetale.core.item.ItemKinds;
 import com.cavetale.core.struct.Cuboid;
 import com.cavetale.core.struct.Vec3i;
@@ -14,6 +15,7 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -48,6 +50,7 @@ import static com.cavetale.dungeons.DungeonsPlugin.DUNGEON_KEY;
 import static com.cavetale.dungeons.DungeonsPlugin.dungeonsPlugin;
 import static com.cavetale.structure.StructurePlugin.structureCache;
 import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.Component.textOfChildren;
 import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 @Getter @RequiredArgsConstructor
@@ -79,6 +82,11 @@ final class Manager implements Listener {
             dungeon.getDiscoveredBy().add(player.getUniqueId());
             structure.saveJsonData();
             new DungeonDiscoverEvent(player, block, raided || discovered).callEvent();
+            Component message = textOfChildren(Mytems.CAVETALE_DUNGEON,
+                                               text("Cavetale Dungeon", AQUA),
+                                               text(" discovered!", GOLD));
+            player.sendMessage(message);
+            player.sendActionBar(message);
         }
         if (discovered) return;
         dungeon.setDiscovered(true);
@@ -237,7 +245,11 @@ final class Manager implements Listener {
         if (item == null || item.getType() != Material.COMPASS) return;
         Location location = player.getLocation();
         if (location.getBlockY() > 48) {
-            player.sendMessage(text("You are too high up to locate dungeons", RED));
+            Component message = textOfChildren(text("You are too high up to locate ", RED),
+                                               Mytems.CAVETALE_DUNGEON,
+                                               text("Cavetale Dungeons", RED));
+            player.sendMessage(message);
+            player.sendActionBar(message);
             player.playSound(player.getEyeLocation(),
                              Sound.UI_BUTTON_CLICK, SoundCategory.MASTER,
                              0.5f, 2.0f);
@@ -282,10 +294,21 @@ final class Manager implements Listener {
         player.setCompassTarget(target);
         if (Math.abs(dx) < 8 && Math.abs(dz) < 8) {
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, SoundCategory.MASTER, 0.5f, 0.7f);
-            player.sendMessage(text("A dungeon is very close!", GOLD));
+            Component message = textOfChildren(text("A ", GOLD),
+                                               Mytems.CAVETALE_DUNGEON,
+                                               text("Cavetale Dungeon", AQUA),
+                                               text(" is very close!", GOLD));
+            player.sendMessage(message);
+            player.sendActionBar(message);
         } else {
             player.playSound(player.getLocation(), Sound.UI_TOAST_IN, SoundCategory.MASTER, 0.5f, 2.0f);
-            player.sendMessage(text("Your compass points to a nearby dungeon", GOLD));
+            Component message = textOfChildren(text("Your ", GOLD),
+                                               VanillaItems.COMPASS, text("Compass", AQUA),
+                                               text(" points to a nearby ", GOLD),
+                                               Mytems.CAVETALE_DUNGEON,
+                                               text("Cavetale Dungeon", AQUA));
+            player.sendMessage(message);
+            player.sendActionBar(message);
         }
     }
 
