@@ -1,5 +1,6 @@
 package com.cavetale.dungeons;
 
+import com.cavetale.core.event.dungeon.DungeonDiscoverEvent;
 import com.cavetale.core.event.player.PluginPlayerEvent;
 import com.cavetale.core.item.ItemKinds;
 import com.cavetale.core.struct.Cuboid;
@@ -71,7 +72,15 @@ final class Manager implements Listener {
         Structure structure = structureCache().at(block);
         if (structure == null || !DUNGEON_KEY.equals(structure.getKey())) return;
         Dungeon dungeon = structure.getJsonData(Dungeon.class, Dungeon::new);
-        if (dungeon.isDiscovered()) return;
+        Player player = event.getPlayer();
+        final boolean discovered = dungeon.isDiscovered();
+        final boolean raided = dungeon.isRaided();
+        if (!dungeon.getDiscoveredBy().contains(player.getUniqueId())) {
+            dungeon.getDiscoveredBy().add(player.getUniqueId());
+            structure.saveJsonData();
+            new DungeonDiscoverEvent(player, block, raided || discovered).callEvent();
+        }
+        if (discovered) return;
         dungeon.setDiscovered(true);
         structure.saveJsonData();
     }
