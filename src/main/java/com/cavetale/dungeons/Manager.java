@@ -222,14 +222,19 @@ final class Manager implements Listener {
         treasure.add(Mytems.SILVER_COIN.createItemStack(64));
         treasure.add(Mytems.GOLDEN_COIN.createItemStack(16));
         treasure.add(Mytems.DIAMOND_COIN.createItemStack());
+        treasure.add(Mytems.KITTY_COIN.createItemStack());
         // Rare
         rare.add(new ItemStack(Material.NETHER_STAR));
         rare.add(new ItemStack(Material.DRAGON_EGG));
         rare.add(new ItemStack(Material.ELYTRA));
         rare.add(Mytems.RUBY_COIN.createItemStack());
-        rare.add(Mytems.KITTY_COIN.createItemStack());
         rare.add(new ItemStack(Material.HEART_OF_THE_SEA));
-        return List.of(dud, books, treasure, rare);
+        List<List<ItemStack>> result = new ArrayList<>();
+        result.add(rare); // 1/10
+        for (int i = 0; i < 3; i += 1) result.add(books);
+        for (int i = 0; i < 3; i += 1) result.add(treasure);
+        for (int i = 0; i < 3; i += 1) result.add(dud);
+        return result;
     }
 
     /**
