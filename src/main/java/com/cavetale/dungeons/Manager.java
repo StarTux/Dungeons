@@ -40,6 +40,7 @@ import org.bukkit.event.world.LootGenerateEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.CompassMeta;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.loot.LootContext;
 import org.bukkit.loot.LootTable;
@@ -248,6 +249,8 @@ final class Manager implements Listener {
         if (!player.getWorld().getName().equals(worldName)) return;
         ItemStack item = event.getItem();
         if (item == null || item.getType() != Material.COMPASS) return;
+        if (Mytems.forItem(item) != null) return;
+        if (item.hasItemMeta() && item.getItemMeta() instanceof CompassMeta meta) return;
         Location location = player.getLocation();
         if (location.getBlockY() > 48) {
             Component message = textOfChildren(text("You are too high up to locate ", RED),
