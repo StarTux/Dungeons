@@ -64,7 +64,7 @@ final class Generator implements Listener {
             name = name.substring(0, name.length() - 5);
             try {
                 BlockClip clip = BlockClip.load(file);
-                if (clip.getMetadata().containsKey("tags")) {
+                if (clip.getMetadata() != null && clip.getMetadata().containsKey("tags")) {
                     @SuppressWarnings("unchecked")
                     List<String> clipTags = (List<String>) clip.getMetadata().get("tags");
                     tags.addAll(clipTags);
