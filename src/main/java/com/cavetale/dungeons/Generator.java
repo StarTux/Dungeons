@@ -16,6 +16,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import org.bukkit.Chunk;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
@@ -28,6 +29,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.loot.LootTables;
+import org.bukkit.loot.Lootable;
 import static com.cavetale.dungeons.DungeonsPlugin.DUNGEON_KEY;
 import static com.cavetale.dungeons.DungeonsPlugin.dungeonsPlugin;
 import static com.cavetale.structure.StructurePlugin.structureCache;
@@ -186,6 +188,7 @@ final class Generator implements Listener {
                                   true,
                                   StructureRotation.NONE, Mirror.NONE,
                                   0, 1.0f, rnd);
+        List<Chest> chests = new ArrayList<>();
         for (int y = 0; y <= clip.getSizeY(); y += 1) {
             for (int z = 0; z <= clip.getSizeZ(); z += 1) {
                 for (int x = 0; x <= clip.getSizeX(); x += 1) {
@@ -197,12 +200,27 @@ final class Generator implements Listener {
                         spawnerCount += 1;
                     } else if (blockState instanceof Container container) {
                         container.getInventory().clear();
-                        if (container instanceof Chest chest) {
-                            chest.setLootTable(LootTables.SIMPLE_DUNGEON.getLootTable());
-                            chestCount += 1;
+                        if (container instanceof Lootable lootable) {
+                            lootable.clearLootTable();
+                            if (lootable instanceof Chest chest) {
+                                chests.add(chest);
+                            }
                         }
                         container.update();
                     }
+                }
+            }
+        }
+        if (!chests.isEmpty()) {
+            final int chestIndex = rnd.nextInt(chests.size());
+            for (int i = 0; i < chests.size(); i += 1) {
+                Chest chest = chests.get(i);
+                if (chestIndex == i) {
+                    chest.setLootTable(LootTables.SIMPLE_DUNGEON.getLootTable());
+                    chest.update();
+                } else {
+                    final boolean applyPhysics = false;
+                    chest.getBlock().setBlockData(Material.AIR.createBlockData(), applyPhysics);
                 }
             }
         }
@@ -213,6 +231,6 @@ final class Generator implements Listener {
                   + " " + (origin.getY() + clip.getSize().get(1) / 2)
                   + " " + (origin.getZ() + clip.getSize().get(2) / 2)
                   + " spawners=" + spawnerCount
-                  + " chests=" + chestCount);
+                  + " chests=" + chests.size());
     }
 }
