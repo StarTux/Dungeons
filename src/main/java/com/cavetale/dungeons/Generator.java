@@ -216,6 +216,10 @@ final class Generator implements Listener {
             for (int i = 0; i < chests.size(); i += 1) {
                 Chest chest = chests.get(i);
                 if (chestIndex == i) {
+                    if (chest.getBlockData() instanceof org.bukkit.block.data.type.Chest blockData) {
+                        blockData.setType(org.bukkit.block.data.type.Chest.Type.SINGLE);
+                        chest.setBlockData(blockData);
+                    }
                     chest.setLootTable(LootTables.SIMPLE_DUNGEON.getLootTable());
                     chest.update();
                 } else {
