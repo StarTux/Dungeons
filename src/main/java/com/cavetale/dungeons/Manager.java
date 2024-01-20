@@ -181,6 +181,13 @@ final class Manager implements Listener {
         }
         dungeonsPlugin().getLogger().info("Bonus item: " + item.getAmount() + "x" + ItemKinds.name(item));
         loot.add(item);
+        for (int i = 0; i < 5; i += 1) {
+            if (random.nextBoolean()) {
+                loot.add(Mytems.GOLDEN_COIN.createItemStack());
+            } else {
+                loot.add(Mytems.SILVER_COIN.createItemStack());
+            }
+        }
     }
 
     private static List<List<ItemStack>> getLootPool() {
@@ -220,10 +227,8 @@ final class Manager implements Listener {
         treasure.add(new ItemStack(Material.TOTEM_OF_UNDYING));
         treasure.add(new ItemStack(Material.SHULKER_SHELL));
         treasure.add(Mytems.RUBY.createItemStack(8));
-        treasure.add(Mytems.SILVER_COIN.createItemStack(64));
-        treasure.add(Mytems.GOLDEN_COIN.createItemStack(16));
         treasure.add(Mytems.DIAMOND_COIN.createItemStack());
-        treasure.add(Mytems.KITTY_COIN.createItemStack());
+        treasure.add(Mytems.KITTY_COIN.createItemStack(2));
         // Rare
         rare.add(new ItemStack(Material.NETHER_STAR));
         rare.add(new ItemStack(Material.DRAGON_EGG));
