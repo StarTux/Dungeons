@@ -214,6 +214,7 @@ final class Manager implements Listener {
         }
         // Enchanted books
         for (Enchantment enchantment : Enchantment.values()) {
+            if (!enchantment.isDiscoverable()) continue;
             if (enchantment.isCursed()) continue;
             final ItemStack book = new ItemStack(Material.ENCHANTED_BOOK);
             book.editMeta(m -> {
