@@ -8,6 +8,7 @@ import com.cavetale.core.struct.Cuboid;
 import com.cavetale.core.struct.Vec3i;
 import com.cavetale.mytems.Mytems;
 import com.cavetale.structure.cache.Structure;
+import io.papermc.paper.registry.RegistryKey;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -43,13 +44,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.CompassMeta;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.loot.LootContext;
-import org.bukkit.loot.LootTable;
 import org.bukkit.loot.LootTables;
 import org.bukkit.persistence.PersistentDataType;
 import static com.cavetale.core.exploits.PlayerPlacedBlocks.isPlayerPlaced;
 import static com.cavetale.dungeons.DungeonsPlugin.DUNGEON_KEY;
 import static com.cavetale.dungeons.DungeonsPlugin.dungeonsPlugin;
 import static com.cavetale.structure.StructurePlugin.structureCache;
+import static io.papermc.paper.registry.RegistryAccess.registryAccess;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.Component.textOfChildren;
 import static net.kyori.adventure.text.format.NamedTextColor.*;
@@ -126,29 +127,14 @@ final class Manager implements Listener {
         Inventory inventory = chest.getInventory();
         chest.setLootTable(null);
         chest.update();
-        LootContext context = new LootContext.Builder(block.getLocation())
-            .killer(player)
-            .build();
-        List<LootTable> lootTables = new ArrayList<>();
-        for (LootTables it : LootTables.values()) {
-            if (!it.getKey().getKey().startsWith("chests/")) continue;
-            if (it == LootTables.JUNGLE_TEMPLE_DISPENSER) continue;
-            if (it == LootTables.SPAWN_BONUS_CHEST) continue;
-            // These contain treasure maps:
-            if (it == LootTables.SHIPWRECK_MAP) continue;
-            if (it == LootTables.UNDERWATER_RUIN_BIG) continue;
-            if (it == LootTables.UNDERWATER_RUIN_SMALL) continue;
-            lootTables.add(it.getLootTable());
-        }
-        LootTable lootTable = !lootTables.isEmpty()
-            ? lootTables.get(random.nextInt(lootTables.size()))
-            : LootTables.SIMPLE_DUNGEON.getLootTable();
-        dungeonsPlugin().getLogger().info("Loot table: " + lootTable.getKey());
         try {
             lootedDungeon = dungeon;
             lootedBoundingBox = structure.getBoundingBox();
             lootingPlayer = player.getUniqueId();
-            lootTable.fillInventory(inventory, random, context);
+            final LootContext lootContext = new LootContext.Builder(block.getLocation())
+                .killer(player)
+                .build();
+            LootTables.SIMPLE_DUNGEON.getLootTable().fillInventory(inventory, random, lootContext);
         } finally {
             lootedDungeon = null;
             lootedBoundingBox = null;
@@ -181,8 +167,13 @@ final class Manager implements Listener {
         }
         dungeonsPlugin().getLogger().info("Bonus item: " + item.getAmount() + "x" + ItemKinds.name(item));
         loot.add(item);
-        for (int i = 0; i < 5; i += 1) {
+        if (random.nextInt(3) == 0) {
+            loot.add(Mytems.KITTY_COIN.createItemStack());
+        }
+        for (int i = 0; i < 15; i += 1) {
             if (random.nextBoolean()) {
+                continue;
+            } else if (random.nextBoolean()) {
                 loot.add(Mytems.GOLDEN_COIN.createItemStack());
             } else {
                 loot.add(Mytems.SILVER_COIN.createItemStack());
@@ -213,7 +204,7 @@ final class Manager implements Listener {
             }
         }
         // Enchanted books
-        for (Enchantment enchantment : Enchantment.values()) {
+        for (Enchantment enchantment : registryAccess().getRegistry(RegistryKey.ENCHANTMENT)) {
             if (!enchantment.isDiscoverable()) continue;
             if (enchantment.isCursed()) continue;
             final ItemStack book = new ItemStack(Material.ENCHANTED_BOOK);
@@ -229,13 +220,14 @@ final class Manager implements Listener {
         treasure.add(new ItemStack(Material.SHULKER_SHELL));
         treasure.add(Mytems.RUBY.createItemStack(8));
         treasure.add(Mytems.DIAMOND_COIN.createItemStack());
-        treasure.add(Mytems.KITTY_COIN.createItemStack(2));
         // Rare
         rare.add(new ItemStack(Material.NETHER_STAR));
         rare.add(new ItemStack(Material.DRAGON_EGG));
         rare.add(new ItemStack(Material.ELYTRA));
-        rare.add(Mytems.RUBY_COIN.createItemStack());
+        rare.add(Mytems.RUBY_COIN.createItemStack(10));
         rare.add(new ItemStack(Material.HEART_OF_THE_SEA));
+        rare.add(new ItemStack(Material.HEAVY_CORE));
+        populateLootMytems(rare);
         List<List<ItemStack>> result = new ArrayList<>();
         result.add(rare); // 1/10
         for (int i = 0; i < 3; i += 1) result.add(books);
@@ -360,5 +352,36 @@ final class Manager implements Listener {
                     }
                 }
             });
+    }
+
+    private static void populateLootMytems(List<ItemStack> result) {
+        result.add(Mytems.RUBY_COIN.createItemStack());
+        result.add(Mytems.MAGIC_CAPE.createItemStack());
+        result.add(Mytems.MOBSLAYER.createItemStack());
+        result.add(Mytems.BINGO_BUKKIT.createItemStack());
+        result.add(Mytems.WITCH_BROOM.createItemStack());
+        result.add(Mytems.BLUNDERBUSS.createItemStack());
+        result.add(Mytems.CAPTAINS_CUTLASS.createItemStack());
+        result.add(Mytems.ENDERBALL.createItemStack());
+        result.add(Mytems.MAGNIFYING_GLASS.createItemStack());
+        result.add(Mytems.FERTILIZER.createItemStack(64));
+        result.add(Mytems.SNOW_SHOVEL.createItemStack());
+        result.add(Mytems.SNEAKERS.createItemStack());
+        result.add(Mytems.UNICORN_HORN.createItemStack());
+        result.add(Mytems.SEALED_CAVEBOY.createItemStack());
+        result.add(Mytems.SCISSORS.createItemStack());
+        result.add(Mytems.COLORFALL_HOURGLASS.createItemStack());
+        result.add(Mytems.STRUCTURE_FINDER.createItemStack());
+        result.add(Mytems.DEFLECTOR_SHIELD.createItemStack());
+        result.add(Mytems.COPPER_SPLEEF_SHOVEL.createItemStack());
+        result.add(Mytems.DIVIDERS.createItemStack());
+        result.add(Mytems.YARDSTICK.createItemStack());
+        result.add(Mytems.LUMINATOR.createItemStack());
+        result.add(Mytems.SCUBA_HELMET.createItemStack());
+        result.add(Mytems.MINER_HELMET.createItemStack());
+        result.add(Mytems.EMPTY_WATERING_CAN.createItemStack());
+        result.add(Mytems.IRON_SCYTHE.createItemStack());
+        result.add(Mytems.TREE_CHOPPER.createItemStack());
+        result.add(Mytems.HASTY_PICKAXE.createItemStack());
     }
 }
