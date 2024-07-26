@@ -8,7 +8,6 @@ import com.cavetale.core.struct.Cuboid;
 import com.cavetale.core.struct.Vec3i;
 import com.cavetale.mytems.Mytems;
 import com.cavetale.structure.cache.Structure;
-import io.papermc.paper.registry.RegistryKey;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -27,7 +26,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
 import org.bukkit.block.CreatureSpawner;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -42,7 +40,6 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.CompassMeta;
-import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.loot.LootContext;
 import org.bukkit.loot.LootTables;
 import org.bukkit.persistence.PersistentDataType;
@@ -50,7 +47,6 @@ import static com.cavetale.core.exploits.PlayerPlacedBlocks.isPlayerPlaced;
 import static com.cavetale.dungeons.DungeonsPlugin.DUNGEON_KEY;
 import static com.cavetale.dungeons.DungeonsPlugin.dungeonsPlugin;
 import static com.cavetale.structure.StructurePlugin.structureCache;
-import static io.papermc.paper.registry.RegistryAccess.registryAccess;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.Component.textOfChildren;
 import static net.kyori.adventure.text.format.NamedTextColor.*;
@@ -183,7 +179,6 @@ final class Manager implements Listener {
 
     private static List<List<ItemStack>> getLootPool() {
         final List<ItemStack> dud = new ArrayList<>();
-        final List<ItemStack> books = new ArrayList<>();
         final List<ItemStack> treasure = new ArrayList<>();
         final List<ItemStack> rare = new ArrayList<>();
         // Random Common Items
@@ -197,23 +192,6 @@ final class Manager implements Listener {
         dud.add(new ItemStack(Material.SADDLE));
         dud.add(new ItemStack(Material.GHAST_TEAR, 16));
         dud.add(Mytems.COPPER_COIN.createItemStack(64));
-        // Discs
-        for (Material mat : Material.values()) {
-            if (mat.isRecord()) {
-                dud.add(new ItemStack(mat));
-            }
-        }
-        // Enchanted books
-        for (Enchantment enchantment : registryAccess().getRegistry(RegistryKey.ENCHANTMENT)) {
-            if (!enchantment.isDiscoverable()) continue;
-            if (enchantment.isCursed()) continue;
-            final ItemStack book = new ItemStack(Material.ENCHANTED_BOOK);
-            book.editMeta(m -> {
-                    final EnchantmentStorageMeta meta = (EnchantmentStorageMeta) m;
-                    meta.addStoredEnchant(enchantment, enchantment.getMaxLevel(), true);
-                });
-            books.add(book);
-        }
         // Treasure
         treasure.add(new ItemStack(Material.ENCHANTED_GOLDEN_APPLE));
         treasure.add(new ItemStack(Material.TOTEM_OF_UNDYING));
@@ -230,9 +208,8 @@ final class Manager implements Listener {
         populateLootMytems(rare);
         List<List<ItemStack>> result = new ArrayList<>();
         result.add(rare); // 1/10
-        for (int i = 0; i < 3; i += 1) result.add(books);
-        for (int i = 0; i < 3; i += 1) result.add(treasure);
-        for (int i = 0; i < 3; i += 1) result.add(dud);
+        for (int i = 0; i < 5; i += 1) result.add(treasure);
+        for (int i = 0; i < 4; i += 1) result.add(dud);
         return result;
     }
 
