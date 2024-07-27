@@ -161,7 +161,6 @@ final class Manager implements Listener {
             }
             item.setAmount(amount);
         }
-        dungeonsPlugin().getLogger().info("Bonus item: " + item.getAmount() + "x" + ItemKinds.name(item));
         loot.add(item);
         if (random.nextInt(3) == 0) {
             loot.add(Mytems.KITTY_COIN.createItemStack());
@@ -175,6 +174,10 @@ final class Manager implements Listener {
                 loot.add(Mytems.SILVER_COIN.createItemStack());
             }
         }
+        dungeonsPlugin().getLogger().info("Bonus item: " + item.getAmount() + "x" + ItemKinds.name(item)
+                                          + (event.getLootContext().getKiller() instanceof Player player
+                                             ? " for " + player.getName()
+                                             : ""));
     }
 
     private static List<List<ItemStack>> getLootPool() {
