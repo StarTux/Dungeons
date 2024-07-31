@@ -167,11 +167,14 @@ final class Manager implements Listener {
         dud.add(new ItemStack(Material.SADDLE));
         dud.add(new ItemStack(Material.GHAST_TEAR, 16));
         dud.add(Mytems.COPPER_COIN.createItemStack(64));
+        dud.add(new ItemStack(Material.MANGROVE_LOG, 64));
+        dud.add(new ItemStack(Material.SMALL_DRIPLEAF, 64));
         // Treasure
         treasure.add(new ItemStack(Material.ENCHANTED_GOLDEN_APPLE));
         treasure.add(new ItemStack(Material.TOTEM_OF_UNDYING));
         treasure.add(new ItemStack(Material.SHULKER_SHELL));
         treasure.add(Mytems.DIAMOND_COIN.createItemStack(10));
+        treasure.add(new ItemStack(Material.TINTED_GLASS, 64));
         // Rare
         rare.add(new ItemStack(Material.NETHER_STAR));
         rare.add(new ItemStack(Material.DRAGON_EGG));
@@ -179,6 +182,7 @@ final class Manager implements Listener {
         rare.add(Mytems.RUBY_COIN.createItemStack());
         rare.add(new ItemStack(Material.HEART_OF_THE_SEA));
         rare.add(new ItemStack(Material.HEAVY_CORE));
+        rare.add(new ItemStack(Material.END_PORTAL_FRAME));
         populateLootMytems(rare);
         List<List<ItemStack>> result = new ArrayList<>();
         result.add(rare); // 1/15
