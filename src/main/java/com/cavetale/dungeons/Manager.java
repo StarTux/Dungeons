@@ -1,6 +1,5 @@
 package com.cavetale.dungeons;
 
-import com.cavetale.core.event.dungeon.DungeonDiscoverEvent;
 import com.cavetale.core.event.player.PluginPlayerEvent;
 import com.cavetale.core.font.VanillaItems;
 import com.cavetale.core.item.ItemKinds;
@@ -32,7 +31,6 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.SpawnerSpawnEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.LootGenerateEvent;
@@ -63,32 +61,6 @@ final class Manager implements Listener {
     public void onPlayerInteract(PlayerInteractEvent event) {
         onPlayerInteractChest(event);
         onPlayerInteractCompass(event);
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    protected void onBlockBreak(BlockBreakEvent event) {
-        Block block = event.getBlock();
-        if (!block.getWorld().getName().equals(worldName)) return;
-        if (block.getType() == Material.STONE) return;
-        Structure structure = structureCache().at(block);
-        if (structure == null || !DUNGEON_KEY.equals(structure.getKey())) return;
-        Dungeon dungeon = structure.getJsonData(Dungeon.class, Dungeon::new);
-        Player player = event.getPlayer();
-        final boolean discovered = dungeon.isDiscovered();
-        final boolean raided = dungeon.isRaided();
-        if (!dungeon.getDiscoveredBy().contains(player.getUniqueId())) {
-            dungeon.getDiscoveredBy().add(player.getUniqueId());
-            structure.saveJsonData();
-            new DungeonDiscoverEvent(player, block, raided || discovered).callEvent();
-            Component message = textOfChildren(Mytems.CAVETALE_DUNGEON,
-                                               text("Cavetale Dungeon", AQUA),
-                                               text(" discovered!", GOLD));
-            player.sendMessage(message);
-            player.sendActionBar(message);
-        }
-        if (discovered) return;
-        dungeon.setDiscovered(true);
-        structure.saveJsonData();
     }
 
     /**
@@ -240,7 +212,7 @@ final class Manager implements Listener {
                              0.5f, 2.0f);
             return;
         }
-        final int margin = 160;
+        final int margin = 256;
         List<Structure> structures = structureCache().within(worldName,
                                                              new Cuboid(location.getBlockX() - margin,
                                                                         location.getWorld().getMinHeight(),
@@ -257,10 +229,11 @@ final class Manager implements Listener {
         int minDistance = Integer.MAX_VALUE;
         final Vec3i playerVec = Vec3i.of(location);
         for (Structure it : structures) {
-            Dungeon dungeon = it.getJsonData(Dungeon.class, Dungeon::new);
-            if (dungeon.isDiscovered() || dungeon.isRaided()) continue;
-            Vec3i dungeonVec = it.getBoundingBox().getCenter();
-            int dist = dungeonVec.distanceSquared(playerVec);
+            if (it.isDiscovered()) {
+                continue;
+            }
+            final Vec3i dungeonVec = it.getBoundingBox().getCenter();
+            final int dist = dungeonVec.distanceSquared(playerVec);
             if (dist < minDistance) {
                 structure = it;
                 minDistance = dist;
