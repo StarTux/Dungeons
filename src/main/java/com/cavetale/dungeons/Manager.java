@@ -127,11 +127,7 @@ final class Manager implements Listener {
         final List<ItemStack> pool2 = pool.get(random.nextInt(pool.size()));
         final ItemStack item = pool2.get(random.nextInt(pool2.size()));
         if (item.getAmount() > 1) {
-            int amount = 1;
-            for (int i = 1; i < item.getAmount(); i += 1) {
-                if (random.nextBoolean()) amount += 1;
-            }
-            item.setAmount(amount);
+            item.setAmount(1 + random.nextInt(item.getAmount()));
         }
         loot.add(item);
         if (random.nextInt(3) == 0) {
@@ -161,6 +157,7 @@ final class Manager implements Listener {
         dud.add(new ItemStack(Material.BONE, 64));
         dud.add(new ItemStack(Material.BONE_BLOCK, 64));
         dud.add(new ItemStack(Material.GUNPOWDER, 64));
+        dud.add(new ItemStack(Material.BLAZE_ROD, 64));
         dud.add(new ItemStack(Material.TNT, 64));
         dud.add(new ItemStack(Material.ARROW, 64));
         dud.add(new ItemStack(Material.WITHER_SKELETON_SKULL));
@@ -175,6 +172,7 @@ final class Manager implements Listener {
         treasure.add(new ItemStack(Material.SHULKER_SHELL));
         treasure.add(Mytems.DIAMOND_COIN.createItemStack(10));
         treasure.add(new ItemStack(Material.TINTED_GLASS, 64));
+        treasure.add(new ItemStack(Material.BREEZE_ROD, 32));
         // Rare
         rare.add(new ItemStack(Material.NETHER_STAR));
         rare.add(new ItemStack(Material.DRAGON_EGG));
