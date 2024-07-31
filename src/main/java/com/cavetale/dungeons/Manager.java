@@ -199,8 +199,7 @@ final class Manager implements Listener {
         treasure.add(new ItemStack(Material.ENCHANTED_GOLDEN_APPLE));
         treasure.add(new ItemStack(Material.TOTEM_OF_UNDYING));
         treasure.add(new ItemStack(Material.SHULKER_SHELL));
-        treasure.add(Mytems.RUBY.createItemStack(8));
-        treasure.add(Mytems.DIAMOND_COIN.createItemStack());
+        treasure.add(Mytems.DIAMOND_COIN.createItemStack(10));
         // Rare
         rare.add(new ItemStack(Material.NETHER_STAR));
         rare.add(new ItemStack(Material.DRAGON_EGG));
@@ -210,9 +209,9 @@ final class Manager implements Listener {
         rare.add(new ItemStack(Material.HEAVY_CORE));
         populateLootMytems(rare);
         List<List<ItemStack>> result = new ArrayList<>();
-        result.add(rare); // 1/10
-        for (int i = 0; i < 5; i += 1) result.add(treasure);
-        for (int i = 0; i < 4; i += 1) result.add(dud);
+        result.add(rare); // 1/15
+        for (int i = 0; i < 7; i += 1) result.add(treasure);
+        for (int i = 0; i < 7; i += 1) result.add(dud);
         return result;
     }
 
