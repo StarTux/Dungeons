@@ -177,7 +177,6 @@ final class Manager implements Listener {
         rare.add(new ItemStack(Material.NETHER_STAR));
         rare.add(new ItemStack(Material.DRAGON_EGG));
         rare.add(new ItemStack(Material.ELYTRA));
-        rare.add(Mytems.RUBY_COIN.createItemStack());
         rare.add(new ItemStack(Material.HEART_OF_THE_SEA));
         rare.add(new ItemStack(Material.HEAVY_CORE));
         rare.add(new ItemStack(Material.END_PORTAL_FRAME));
