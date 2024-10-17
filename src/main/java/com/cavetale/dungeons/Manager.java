@@ -8,6 +8,7 @@ import com.cavetale.core.struct.Vec3i;
 import com.cavetale.mytems.Mytems;
 import com.cavetale.structure.cache.Structure;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -29,8 +30,10 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.SpawnerSpawnEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.LootGenerateEvent;
@@ -281,7 +284,7 @@ final class Manager implements Listener {
 
     private static final NamespacedKey SPAWNED_KEY = NamespacedKey.fromString("dungeons:spawned");
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = false, priority = EventPriority.NORMAL)
     private void onSpawnerSpawn(SpawnerSpawnEvent event) {
         final Block block = event.getSpawner().getBlock();
         if (!block.getWorld().getName().equals(worldName)) return;
@@ -305,6 +308,18 @@ final class Manager implements Listener {
                     }
                 }
             });
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.NORMAL)
+    private void onEntityExplode(EntityExplodeEvent event) {
+        final Structure structure = structureCache().at(event.getEntity().getLocation().getBlock());
+        if (structure == null || !DUNGEON_KEY.equals(structure.getKey())) return;
+        for (Iterator<Block> iter = event.blockList().iterator(); iter.hasNext();) {
+            final Block block = iter.next();
+            if (block.getState() instanceof Chest) {
+                iter.remove();
+            }
+        }
     }
 
     private static void populateLootMytems(List<ItemStack> result) {
