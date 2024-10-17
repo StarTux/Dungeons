@@ -20,21 +20,28 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
 import org.bukkit.block.CreatureSpawner;
+import org.bukkit.block.TrialSpawner;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockDispenseLootEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.SpawnerSpawnEvent;
+import org.bukkit.event.entity.TrialSpawnerSpawnEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.LootGenerateEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -47,6 +54,7 @@ import org.bukkit.persistence.PersistentDataType;
 import static com.cavetale.core.exploits.PlayerPlacedBlocks.isPlayerPlaced;
 import static com.cavetale.dungeons.DungeonsPlugin.DUNGEON_KEY;
 import static com.cavetale.dungeons.DungeonsPlugin.dungeonsPlugin;
+import static com.cavetale.mytems.util.Text.formatDouble;
 import static com.cavetale.structure.StructurePlugin.structureCache;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.Component.textOfChildren;
@@ -93,25 +101,47 @@ final class Manager implements Listener {
         if (dungeon.isRaided()) return;
         dungeon.setRaided(true);
         structure.saveJsonData();
-        // Do the loot
-        Player player = event.getPlayer();
-        Inventory inventory = chest.getInventory();
-        chest.setLootTable(null);
-        chest.update();
-        try {
-            lootedDungeon = dungeon;
-            lootedBoundingBox = structure.getBoundingBox();
-            lootingPlayer = player.getUniqueId();
-            final LootContext lootContext = new LootContext.Builder(block.getLocation())
-                .killer(player)
-                .build();
-            LootTables.SIMPLE_DUNGEON.getLootTable().fillInventory(inventory, random, lootContext);
-        } finally {
-            lootedDungeon = null;
-            lootedBoundingBox = null;
-            lootingPlayer = null;
-        }
+        final Player player = event.getPlayer();
         PluginPlayerEvent.Name.DUNGEON_LOOT.call(dungeonsPlugin(), player);
+        if (random.nextInt(5) > 0) {
+            event.setCancelled(true);
+            Bukkit.getScheduler().runTask(dungeonsPlugin(), () -> {
+                    final org.bukkit.block.data.type.TrialSpawner blockData = (org.bukkit.block.data.type.TrialSpawner) Material.TRIAL_SPAWNER.createBlockData();
+                    blockData.setOminous(true);
+                    block.setBlockData(blockData);
+                    if (block.getState() instanceof TrialSpawner trialSpawner) {
+                        trialSpawner.setOminous(true);
+                        trialSpawner.startTrackingPlayer(player);
+                        trialSpawner.getOminousConfiguration().setBaseSimultaneousEntities(4);
+                        trialSpawner.getOminousConfiguration().setBaseSpawnsBeforeCooldown(12);
+                        trialSpawner.getOminousConfiguration().setSpawnRange(6);
+                        trialSpawner.getOminousConfiguration().setSpawnedType(SpawnedTypes.random(random));
+                        trialSpawner.update();
+                    }
+                    final Location center = block.getLocation().add(0.5, 0.5, 0.5);
+                    block.getWorld().playSound(center, Sound.BLOCK_TRIAL_SPAWNER_OMINOUS_ACTIVATE, 2f, 1f);
+                    block.getWorld().spawnParticle(Particle.WHITE_SMOKE, center, 64, 0.35, 0.35, 0.35, 0.1);
+                    block.getWorld().spawnParticle(Particle.LARGE_SMOKE, center, 32, 0.25, 0.25, 0.25, 0.1);
+                });
+        } else {
+            // Do the loot
+            Inventory inventory = chest.getInventory();
+            chest.setLootTable(null);
+            chest.update();
+            try {
+                lootedDungeon = dungeon;
+                lootedBoundingBox = structure.getBoundingBox();
+                lootingPlayer = player.getUniqueId();
+                final LootContext lootContext = new LootContext.Builder(block.getLocation())
+                    .killer(player)
+                    .build();
+                LootTables.SIMPLE_DUNGEON.getLootTable().fillInventory(inventory, random, lootContext);
+            } finally {
+                lootedDungeon = null;
+                lootedBoundingBox = null;
+                lootingPlayer = null;
+            }
+        }
     }
 
     private static final int BASE_CHANCE = 3;
@@ -126,12 +156,7 @@ final class Manager implements Listener {
                              lootedDungeon,
                              lootedBoundingBox,
                              loot).callEvent();
-        final List<List<ItemStack>> pool = getLootPool();
-        final List<ItemStack> pool2 = pool.get(random.nextInt(pool.size()));
-        final ItemStack item = pool2.get(random.nextInt(pool2.size()));
-        if (item.getAmount() > 1) {
-            item.setAmount(1 + random.nextInt(item.getAmount()));
-        }
+        final ItemStack item = getLootPoolItem();
         loot.add(item);
         if (random.nextInt(3) == 0) {
             loot.add(Mytems.KITTY_COIN.createItemStack());
@@ -145,10 +170,21 @@ final class Manager implements Listener {
                 loot.add(Mytems.SILVER_COIN.createItemStack());
             }
         }
-        dungeonsPlugin().getLogger().info("Bonus item: " + item.getAmount() + "x" + ItemKinds.name(item)
+        dungeonsPlugin().getLogger().info(event.getEventName() + " bonus item: "
+                                          + item.getAmount() + "x" + ItemKinds.name(item)
                                           + (event.getLootContext().getKiller() instanceof Player player
                                              ? " for " + player.getName()
                                              : ""));
+    }
+
+    private ItemStack getLootPoolItem() {
+        final List<List<ItemStack>> pool = getLootPool();
+        final List<ItemStack> pool2 = pool.get(random.nextInt(pool.size()));
+        ItemStack item = pool2.get(random.nextInt(pool2.size()));
+        if (item.getAmount() > 1) {
+            item.setAmount(1 + random.nextInt(item.getAmount()));
+        }
+        return item;
     }
 
     private static List<List<ItemStack>> getLootPool() {
@@ -302,16 +338,94 @@ final class Manager implements Listener {
             });
     }
 
+    @EventHandler(ignoreCancelled = false, priority = EventPriority.NORMAL)
+    private void onTrialSpawnerSpawn(TrialSpawnerSpawnEvent event) {
+        final Block block = event.getTrialSpawner().getBlock();
+        if (!block.getWorld().getName().equals(worldName)) return;
+        Structure structure = structureCache().at(block);
+        if (structure == null || !DUNGEON_KEY.equals(structure.getKey())) return;
+        if (!structure.getBoundingBox().contains(event.getEntity().getLocation())) {
+            event.setCancelled(true);
+            return;
+        }
+        if (event.getEntity() instanceof Mob mob) {
+            double health = 0.0;
+            double damage = 0.0;
+            double armor = 0.0;
+            for (Player player : event.getTrialSpawner().getTrackedPlayers()) {
+                health = Math.max(health, player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+                damage = Math.max(damage, player.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).getValue());
+                armor = Math.max(armor, player.getAttribute(Attribute.GENERIC_ARMOR).getValue() * 0.75);
+            }
+            final AttributeInstance maxHealthAttribute = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+            if (maxHealthAttribute != null) {
+                maxHealthAttribute.setBaseValue(Math.max(health, maxHealthAttribute.getBaseValue()));
+                mob.setHealth(health);
+            }
+            final AttributeInstance attackDamageAttribute = mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
+            if (attackDamageAttribute != null) {
+                attackDamageAttribute.setBaseValue(Math.max(damage, attackDamageAttribute.getBaseValue()));
+            }
+            final AttributeInstance armorAttribute = mob.getAttribute(Attribute.GENERIC_ARMOR);
+            if (armorAttribute != null) {
+                armorAttribute.setBaseValue(Math.max(armor, armorAttribute.getBaseValue()));
+            }
+            dungeonsPlugin().getLogger().info(event.getEventName()
+                                              + " health:" + formatDouble(health)
+                                              + " damage:" + formatDouble(damage)
+                                              + " armor:" + formatDouble(armor));
+        }
+        Bukkit.getScheduler().runTask(dungeonsPlugin(), () -> {
+                if (!(block.getState() instanceof TrialSpawner trialSpawner)) return;
+                trialSpawner.getOminousConfiguration().setSpawnedType(SpawnedTypes.random(random));
+                trialSpawner.update();
+            });
+    }
+
     @EventHandler(ignoreCancelled = true, priority = EventPriority.NORMAL)
     private void onEntityExplode(EntityExplodeEvent event) {
+        if (!event.getEntity().getWorld().getName().equals(worldName)) return;
         final Structure structure = structureCache().at(event.getEntity().getLocation().getBlock());
         if (structure == null || !DUNGEON_KEY.equals(structure.getKey())) return;
         for (Iterator<Block> iter = event.blockList().iterator(); iter.hasNext();) {
             final Block block = iter.next();
             if (block.getState() instanceof Chest) {
                 iter.remove();
+            } else if (block.getState() instanceof CreatureSpawner) {
+                iter.remove();
             }
         }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.NORMAL)
+    private void onBlockDispenseLoot(BlockDispenseLootEvent event) {
+        final Block block = event.getBlock();
+        if (!block.getWorld().getName().equals(worldName)) return;
+        final Structure structure = structureCache().at(block);
+        if (structure == null || !DUNGEON_KEY.equals(structure.getKey())) return;
+        final ItemStack item = getLootPoolItem();
+        final List<ItemStack> loot = new ArrayList<>();
+        for (int i = 0; i < 5; i += 1) {
+            if (random.nextBoolean()) {
+                loot.add(Mytems.RUBY.createItemStack());
+            }
+        }
+        if (random.nextInt(3) > 0) {
+            loot.add(Mytems.KITTY_COIN.createItemStack());
+        }
+        loot.add(item);
+        event.setDispensedLoot(loot);
+        dungeonsPlugin().getLogger().info(event.getEventName() + " bonus item: "
+                                          + item.getAmount() + "x" + ItemKinds.name(item)
+                                          + (event.getPlayer() != null
+                                             ? " for " + event.getPlayer().getName()
+                                             : ""));
+        Bukkit.getScheduler().runTask(dungeonsPlugin(), () -> {
+                if (block.getState() instanceof TrialSpawner trialSpawner) {
+                    trialSpawner.getOminousConfiguration().setSpawnedType(null);
+                    trialSpawner.update();
+                }
+            });
     }
 
     private static void populateLootMytems(List<ItemStack> result) {

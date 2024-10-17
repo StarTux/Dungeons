@@ -13,9 +13,6 @@ public final class SpawnedTypes {
         // Eperimental
         EntityType.BLAZE,
         EntityType.BREEZE,
-        EntityType.EVOKER,
-        EntityType.PILLAGER,
-        EntityType.VINDICATOR,
         EntityType.WITCH,
         EntityType.WITHER_SKELETON,
     };
