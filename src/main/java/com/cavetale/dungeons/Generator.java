@@ -223,7 +223,7 @@ final class Generator implements Listener {
                     chest.setLootTable(LootTables.SIMPLE_DUNGEON.getLootTable());
                     chest.update();
                 } else {
-                    final boolean applyPhysics = false;
+                    final boolean applyPhysics = true;
                     chest.getBlock().setBlockData(Material.AIR.createBlockData(), applyPhysics);
                 }
             }
