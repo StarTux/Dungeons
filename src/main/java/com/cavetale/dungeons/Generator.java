@@ -47,6 +47,14 @@ final class Generator implements Listener {
         EntityType.ZOMBIE,
         EntityType.SKELETON,
         EntityType.CREEPER,
+        // Eperimental
+        EntityType.BLAZE,
+        EntityType.BREEZE,
+        EntityType.EVOKER,
+        EntityType.PILLAGER,
+        EntityType.VINDICATOR,
+        EntityType.WITCH,
+        EntityType.WITHER_SKELETON,
     };
 
     @Value
