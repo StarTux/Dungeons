@@ -24,7 +24,6 @@ import org.bukkit.block.Container;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
-import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -41,21 +40,6 @@ final class Generator implements Listener {
     private ArrayList<DungeonClip> dungeons = new ArrayList<>();
     private int dungeonIndex = 0;
     private final Random random = new Random(System.nanoTime());
-    private static final EntityType[] SPAWNED_TYPES = new EntityType[] {
-        EntityType.CAVE_SPIDER,
-        EntityType.SPIDER,
-        EntityType.ZOMBIE,
-        EntityType.SKELETON,
-        EntityType.CREEPER,
-        // Eperimental
-        EntityType.BLAZE,
-        EntityType.BREEZE,
-        EntityType.EVOKER,
-        EntityType.PILLAGER,
-        EntityType.VINDICATOR,
-        EntityType.WITCH,
-        EntityType.WITHER_SKELETON,
-    };
 
     @Value
     static class DungeonClip {
@@ -203,7 +187,7 @@ final class Generator implements Listener {
                     Block block = origin.getRelative(x, y, z);
                     BlockState blockState = block.getState();
                     if (blockState instanceof CreatureSpawner spawner) {
-                        spawner.setSpawnedType(SPAWNED_TYPES[rnd.nextInt(SPAWNED_TYPES.length)]);
+                        spawner.setSpawnedType(SpawnedTypes.random(rnd));
                         spawner.update();
                         spawnerCount += 1;
                     } else if (blockState instanceof Container container) {

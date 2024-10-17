@@ -274,14 +274,6 @@ final class Manager implements Listener {
         }
     }
 
-    private static final EntityType[] SPAWNED_TYPES = new EntityType[] {
-        EntityType.CAVE_SPIDER,
-        EntityType.SPIDER,
-        EntityType.ZOMBIE,
-        EntityType.SKELETON,
-        EntityType.CREEPER,
-    };
-
     private static final NamespacedKey SPAWNED_KEY = NamespacedKey.fromString("dungeons:spawned");
 
     @EventHandler(ignoreCancelled = false, priority = EventPriority.NORMAL)
@@ -294,7 +286,7 @@ final class Manager implements Listener {
                 if (!(block.getState() instanceof CreatureSpawner spawner)) return;
                 int spawned = spawner.getPersistentDataContainer().getOrDefault(SPAWNED_KEY, PersistentDataType.INTEGER, 0);
                 spawner.getPersistentDataContainer().set(SPAWNED_KEY, PersistentDataType.INTEGER, spawned + 1);
-                EntityType spawnedType = SPAWNED_TYPES[random.nextInt(SPAWNED_TYPES.length)];
+                final EntityType spawnedType = SpawnedTypes.random(random);
                 spawner.setSpawnedType(spawnedType);
                 spawner.update();
                 if (spawned > 10) {
