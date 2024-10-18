@@ -66,6 +66,7 @@ final class Manager implements Listener {
     private Cuboid lootedBoundingBox = null;
     private Dungeon lootedDungeon = null;
     private UUID lootingPlayer = null;
+    private ItemStack lootItem = null;
     private final Random random = ThreadLocalRandom.current();
 
     @EventHandler
@@ -132,6 +133,7 @@ final class Manager implements Listener {
                 lootedDungeon = dungeon;
                 lootedBoundingBox = structure.getBoundingBox();
                 lootingPlayer = player.getUniqueId();
+                lootItem = getLootPoolItem(7, 7, 1);
                 final LootContext lootContext = new LootContext.Builder(block.getLocation())
                     .killer(player)
                     .build();
@@ -140,6 +142,7 @@ final class Manager implements Listener {
                 lootedDungeon = null;
                 lootedBoundingBox = null;
                 lootingPlayer = null;
+                lootItem = null;
             }
         }
     }
@@ -171,8 +174,9 @@ final class Manager implements Listener {
                              lootedDungeon,
                              lootedBoundingBox,
                              loot).callEvent();
-        final ItemStack item = getLootPoolItem();
-        loot.add(item);
+        if (lootItem != null) {
+            loot.add(lootItem);
+        }
         if (random.nextInt(3) == 0) {
             loot.add(Mytems.KITTY_COIN.createItemStack());
         }
@@ -186,14 +190,14 @@ final class Manager implements Listener {
             }
         }
         dungeonsPlugin().getLogger().info(event.getEventName() + " bonus item: "
-                                          + item.getAmount() + "x" + ItemKinds.name(item)
+                                          + lootItem.getAmount() + "x" + ItemKinds.name(lootItem)
                                           + (event.getLootContext().getKiller() instanceof Player player
                                              ? " for " + player.getName()
                                              : ""));
     }
 
-    private ItemStack getLootPoolItem() {
-        final List<List<ItemStack>> pool = getLootPool();
+    private ItemStack getLootPoolItem(int dudChance, int treasureChance, int rareChance) {
+        final List<List<ItemStack>> pool = getLootPool(dudChance, treasureChance, rareChance);
         final List<ItemStack> pool2 = pool.get(random.nextInt(pool.size()));
         ItemStack item = pool2.get(random.nextInt(pool2.size()));
         if (item.getAmount() > 1) {
@@ -202,43 +206,55 @@ final class Manager implements Listener {
         return item;
     }
 
-    private static List<List<ItemStack>> getLootPool() {
-        final List<ItemStack> dud = new ArrayList<>();
-        final List<ItemStack> treasure = new ArrayList<>();
-        final List<ItemStack> rare = new ArrayList<>();
-        // Random Common Items
-        dud.add(new ItemStack(Material.SPONGE, 16));
-        dud.add(new ItemStack(Material.BONE, 64));
-        dud.add(new ItemStack(Material.BONE_BLOCK, 64));
-        dud.add(new ItemStack(Material.GUNPOWDER, 64));
-        dud.add(new ItemStack(Material.BLAZE_ROD, 64));
-        dud.add(new ItemStack(Material.TNT, 64));
-        dud.add(new ItemStack(Material.ARROW, 64));
-        dud.add(new ItemStack(Material.WITHER_SKELETON_SKULL));
-        dud.add(new ItemStack(Material.SADDLE));
-        dud.add(new ItemStack(Material.GHAST_TEAR, 16));
-        dud.add(Mytems.COPPER_COIN.createItemStack(64));
-        dud.add(new ItemStack(Material.MANGROVE_LOG, 64));
-        dud.add(new ItemStack(Material.SMALL_DRIPLEAF, 64));
-        // Treasure
-        treasure.add(new ItemStack(Material.ENCHANTED_GOLDEN_APPLE));
-        treasure.add(new ItemStack(Material.TOTEM_OF_UNDYING));
-        treasure.add(new ItemStack(Material.SHULKER_SHELL));
-        treasure.add(Mytems.DIAMOND_COIN.createItemStack(10));
-        treasure.add(new ItemStack(Material.TINTED_GLASS, 64));
-        treasure.add(new ItemStack(Material.BREEZE_ROD, 32));
-        // Rare
-        rare.add(new ItemStack(Material.NETHER_STAR));
-        rare.add(new ItemStack(Material.DRAGON_EGG));
-        rare.add(new ItemStack(Material.ELYTRA));
-        rare.add(new ItemStack(Material.HEART_OF_THE_SEA));
-        rare.add(new ItemStack(Material.HEAVY_CORE));
-        rare.add(new ItemStack(Material.END_PORTAL_FRAME));
-        populateLootMytems(rare);
+    private static List<List<ItemStack>> getLootPool(int dudChance, int treasureChance, int rareChance) {
         List<List<ItemStack>> result = new ArrayList<>();
-        result.add(rare); // 1/15
-        for (int i = 0; i < 7; i += 1) result.add(treasure);
-        for (int i = 0; i < 7; i += 1) result.add(dud);
+        if (dudChance > 0) {
+            final List<ItemStack> dud = new ArrayList<>();
+            dud.add(new ItemStack(Material.SPONGE, 16));
+            dud.add(new ItemStack(Material.BONE, 64));
+            dud.add(new ItemStack(Material.BONE_BLOCK, 64));
+            dud.add(new ItemStack(Material.GUNPOWDER, 64));
+            dud.add(new ItemStack(Material.BLAZE_ROD, 64));
+            dud.add(new ItemStack(Material.TNT, 64));
+            dud.add(new ItemStack(Material.ARROW, 64));
+            dud.add(new ItemStack(Material.WITHER_SKELETON_SKULL));
+            dud.add(new ItemStack(Material.SADDLE));
+            dud.add(new ItemStack(Material.GHAST_TEAR, 16));
+            dud.add(Mytems.COPPER_COIN.createItemStack(64));
+            dud.add(new ItemStack(Material.MANGROVE_LOG, 64));
+            dud.add(new ItemStack(Material.SMALL_DRIPLEAF, 64));
+            for (int i = 0; i < dudChance; i += 1) {
+                result.add(dud);
+            }
+        }
+        if (treasureChance > 0) {
+            final List<ItemStack> treasure = new ArrayList<>();
+            treasure.add(new ItemStack(Material.ENCHANTED_GOLDEN_APPLE));
+            treasure.add(new ItemStack(Material.TOTEM_OF_UNDYING));
+            treasure.add(new ItemStack(Material.SHULKER_SHELL, 10));
+            treasure.add(Mytems.DIAMOND_COIN.createItemStack(10));
+            treasure.add(new ItemStack(Material.TINTED_GLASS, 64));
+            treasure.add(new ItemStack(Material.BREEZE_ROD, 32));
+            for (int i = 0; i < treasureChance; i += 1) {
+                result.add(treasure);
+            }
+        }
+        if (rareChance > 0) {
+            final List<ItemStack> rare = new ArrayList<>();
+            rare.add(new ItemStack(Material.NETHER_STAR));
+            rare.add(new ItemStack(Material.DRAGON_EGG));
+            rare.add(new ItemStack(Material.ELYTRA));
+            rare.add(new ItemStack(Material.HEART_OF_THE_SEA));
+            rare.add(new ItemStack(Material.HEAVY_CORE));
+            rare.add(new ItemStack(Material.END_PORTAL_FRAME));
+            populateLootMytems(rare);
+            for (int i = 0; i < rareChance; i += 1) {
+                result.add(rare);
+            }
+        }
+        if (result.isEmpty()) {
+            throw new IllegalStateException("Loot pool is empty dud:" + dudChance + " treasure:" + treasureChance + " rare:" + rareChance);
+        }
         return result;
     }
 
@@ -412,33 +428,42 @@ final class Manager implements Listener {
         }
     }
 
+    /**
+     * The trial spawner has been defeated, and now the loot spawns.
+     */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.NORMAL)
     private void onBlockDispenseLoot(BlockDispenseLootEvent event) {
         final Block block = event.getBlock();
         if (!block.getWorld().getName().equals(worldName)) return;
         final Structure structure = structureCache().at(block);
         if (structure == null || !DUNGEON_KEY.equals(structure.getKey())) return;
-        final ItemStack item = getLootPoolItem();
-        final List<ItemStack> loot = new ArrayList<>();
-        for (int i = 0; i < 5; i += 1) {
-            if (random.nextBoolean()) {
-                loot.add(Mytems.RUBY.createItemStack());
-            }
+        final Dungeon dungeon = structure.getJsonData(Dungeon.class, Dungeon::new);
+        if (!dungeon.isRaided()) return;
+        if (!(event.getBlock().getState() instanceof TrialSpawner trialSpawner)) return;
+        Player pl = null;
+        for (Player p : trialSpawner.getTrackedPlayers()) {
+            pl = p;
+            break;
         }
-        if (random.nextInt(3) > 0) {
-            loot.add(Mytems.KITTY_COIN.createItemStack());
-        }
-        loot.add(item);
-        event.setDispensedLoot(loot);
-        dungeonsPlugin().getLogger().info(event.getEventName() + " bonus item: "
-                                          + item.getAmount() + "x" + ItemKinds.name(item)
-                                          + (event.getPlayer() != null
-                                             ? " for " + event.getPlayer().getName()
-                                             : ""));
+        final Player player = pl;
+        event.setCancelled(true);
         Bukkit.getScheduler().runTask(dungeonsPlugin(), () -> {
-                if (block.getState() instanceof TrialSpawner trialSpawner) {
-                    trialSpawner.getOminousConfiguration().setSpawnedType(null);
-                    trialSpawner.update();
+                block.setType(Material.CHEST);
+                if (!(block.getState() instanceof Chest chest)) return;
+                try {
+                    lootedDungeon = dungeon;
+                    lootedBoundingBox = structure.getBoundingBox();
+                    lootingPlayer = player.getUniqueId();
+                    lootItem = getLootPoolItem(0, 1, 1);
+                    final LootContext lootContext = new LootContext.Builder(block.getLocation())
+                        .killer(player)
+                        .build();
+                    LootTables.SIMPLE_DUNGEON.getLootTable().fillInventory(chest.getInventory(), random, lootContext);
+                } finally {
+                    lootedDungeon = null;
+                    lootedBoundingBox = null;
+                    lootingPlayer = null;
+                    lootItem = null;
                 }
             });
     }
