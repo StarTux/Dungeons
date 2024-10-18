@@ -182,7 +182,6 @@ final class Generator implements Listener {
                                   0, 1.0f, rnd);
         for (int z = 0; z < clip.getSizeZ(); z += 1) {
             for (int x = 0; x < clip.getSizeX(); x += 1) {
-                origin.getRelative(x, -1, z).setType(Material.BEDROCK, false);
                 origin.getRelative(x, clip.getSizeY(), z).setType(Material.BEDROCK, false);
             }
         }
