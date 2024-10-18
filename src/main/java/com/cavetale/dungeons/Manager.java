@@ -144,10 +144,25 @@ final class Manager implements Listener {
         }
     }
 
-    private static final int BASE_CHANCE = 3;
+    /**
+     * Make sure loot cannot generate in the dungeon chests
+     * prematurely, for example using a hopper.
+     */
+    @EventHandler(ignoreCancelled = false, priority = EventPriority.LOW)
+    private void onLootGenerateInUnlootedDungeon(LootGenerateEvent event) {
+        if (!event.getWorld().getName().equals(worldName)) return;
+        if (!(event.getInventoryHolder() instanceof Chest chest)) return;
+        final Block block = chest.getBlock();
+        Structure structure = structureCache().at(block);
+        if (structure == null || !DUNGEON_KEY.equals(structure.getKey())) return;
+        Dungeon dungeon = structure.getJsonData(Dungeon.class, Dungeon::new);
+        if (dungeon.isRaided()) return;
+        event.setCancelled(true);
+        dungeonsPlugin().getLogger().info("Deny " + event.getEventName() + " " + worldName + " " + block.getX() + " " + block.getY() + " " + block.getZ());
+    }
 
     @EventHandler(ignoreCancelled = true)
-    private void onLootGenerate(LootGenerateEvent event) {
+    private void onLootGenerateInLootedDungeon(LootGenerateEvent event) {
         if (lootedDungeon == null) return;
         List<ItemStack> loot = event.getLoot();
         loot.removeIf(it -> it != null && it.getType() == Material.FILLED_MAP);
