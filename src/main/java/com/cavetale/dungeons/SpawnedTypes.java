@@ -13,7 +13,6 @@ public final class SpawnedTypes {
         // Eperimental
         EntityType.BLAZE,
         EntityType.BREEZE,
-        EntityType.WITCH,
         EntityType.WITHER_SKELETON,
     };
 
