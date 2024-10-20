@@ -186,9 +186,9 @@ final class Generator implements Listener {
             }
         }
         List<Chest> chests = new ArrayList<>();
-        for (int y = 0; y <= clip.getSizeY(); y += 1) {
-            for (int z = 0; z <= clip.getSizeZ(); z += 1) {
-                for (int x = 0; x <= clip.getSizeX(); x += 1) {
+        for (int y = 0; y < clip.getSizeY(); y += 1) {
+            for (int z = 0; z < clip.getSizeZ(); z += 1) {
+                for (int x = 0; x < clip.getSizeX(); x += 1) {
                     Block block = origin.getRelative(x, y, z);
                     BlockState blockState = block.getState();
                     if (blockState instanceof CreatureSpawner spawner) {
