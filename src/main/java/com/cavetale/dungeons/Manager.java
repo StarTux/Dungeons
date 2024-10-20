@@ -62,6 +62,8 @@ import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 @Getter @RequiredArgsConstructor
 final class Manager implements Listener {
+    private static final int MIN_DUNGEON_LENGTH = 11;
+
     private final String worldName;
     private Cuboid lootedBoundingBox = null;
     private Dungeon lootedDungeon = null;
@@ -104,7 +106,7 @@ final class Manager implements Listener {
         structure.saveJsonData();
         final Player player = event.getPlayer();
         PluginPlayerEvent.Name.DUNGEON_LOOT.call(dungeonsPlugin(), player);
-        if (random.nextInt(5) > 0) {
+        if (structure.getBoundingBox().getSizeX() >= MIN_DUNGEON_LENGTH && structure.getBoundingBox().getSizeZ() >= MIN_DUNGEON_LENGTH) {
             event.setCancelled(true);
             Bukkit.getScheduler().runTask(dungeonsPlugin(), () -> {
                     final org.bukkit.block.data.type.TrialSpawner blockData = (org.bukkit.block.data.type.TrialSpawner) Material.TRIAL_SPAWNER.createBlockData();
@@ -114,7 +116,7 @@ final class Manager implements Listener {
                         trialSpawner.setOminous(true);
                         trialSpawner.startTrackingPlayer(player);
                         trialSpawner.getOminousConfiguration().setBaseSimultaneousEntities(4);
-                        trialSpawner.getOminousConfiguration().setBaseSpawnsBeforeCooldown(12);
+                        trialSpawner.getOminousConfiguration().setBaseSpawnsBeforeCooldown(16);
                         trialSpawner.getOminousConfiguration().setSpawnRange(6);
                         trialSpawner.getOminousConfiguration().setSpawnedType(SpawnedTypes.random(random));
                         trialSpawner.update();
@@ -454,7 +456,7 @@ final class Manager implements Listener {
                     lootedDungeon = dungeon;
                     lootedBoundingBox = structure.getBoundingBox();
                     lootingPlayer = player.getUniqueId();
-                    lootItem = getLootPoolItem(0, 1, 1);
+                    lootItem = getLootPoolItem(1, 3, 1);
                     final LootContext lootContext = new LootContext.Builder(block.getLocation())
                         .killer(player)
                         .build();
