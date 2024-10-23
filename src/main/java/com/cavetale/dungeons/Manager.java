@@ -62,7 +62,7 @@ import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 @Getter @RequiredArgsConstructor
 final class Manager implements Listener {
-    private static final int MIN_DUNGEON_LENGTH = 11;
+    private static final int MIN_DUNGEON_LENGTH = 12;
 
     private final String worldName;
     private Cuboid lootedBoundingBox = null;
