@@ -366,6 +366,7 @@ final class Manager implements Listener {
                                                           + " " + block.getX()
                                                           + " " + block.getY()
                                                           + " " + block.getZ());
+                        block.setType(Material.AIR);
                         block.getWorld().createExplosion(block.getLocation().add(0.5, 0.5, 0.5), 6f);
                     }
                 }
@@ -434,8 +435,6 @@ final class Manager implements Listener {
             final Structure structure = structureCache().at(block);
             if (structure == null || !DUNGEON_KEY.equals(structure.getKey())) continue;
             if (block.getState() instanceof Chest) {
-                iter.remove();
-            } else if (block.getState() instanceof CreatureSpawner) {
                 iter.remove();
             }
         }
