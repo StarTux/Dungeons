@@ -180,11 +180,6 @@ final class Generator implements Listener {
                                   true,
                                   StructureRotation.NONE, Mirror.NONE,
                                   0, 1.0f, rnd);
-        for (int z = 0; z < clip.getSizeZ(); z += 1) {
-            for (int x = 0; x < clip.getSizeX(); x += 1) {
-                origin.getRelative(x, clip.getSizeY(), z).setType(Material.BEDROCK, false);
-            }
-        }
         List<Chest> chests = new ArrayList<>();
         for (int y = 0; y < clip.getSizeY(); y += 1) {
             for (int z = 0; z < clip.getSizeZ(); z += 1) {
