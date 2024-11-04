@@ -39,6 +39,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockDispenseLootEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.SpawnerSpawnEvent;
 import org.bukkit.event.entity.TrialSpawnerSpawnEvent;
@@ -418,10 +419,20 @@ final class Manager implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.NORMAL)
     private void onEntityExplode(EntityExplodeEvent event) {
         if (!event.getEntity().getWorld().getName().equals(worldName)) return;
-        final Structure structure = structureCache().at(event.getEntity().getLocation().getBlock());
-        if (structure == null || !DUNGEON_KEY.equals(structure.getKey())) return;
-        for (Iterator<Block> iter = event.blockList().iterator(); iter.hasNext();) {
+        onExplode(event.blockList());
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.NORMAL)
+    private void onBlockExplode(BlockExplodeEvent event) {
+        if (!event.getBlock().getWorld().getName().equals(worldName)) return;
+        onExplode(event.blockList());
+    }
+
+    private void onExplode(Iterable<Block> blockList) {
+        for (Iterator<Block> iter = blockList.iterator(); iter.hasNext();) {
             final Block block = iter.next();
+            final Structure structure = structureCache().at(block);
+            if (structure == null || !DUNGEON_KEY.equals(structure.getKey())) continue;
             if (block.getState() instanceof Chest) {
                 iter.remove();
             } else if (block.getState() instanceof CreatureSpawner) {
