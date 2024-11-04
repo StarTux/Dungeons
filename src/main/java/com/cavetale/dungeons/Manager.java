@@ -237,7 +237,6 @@ final class Manager implements Listener {
             treasure.add(new ItemStack(Material.SHULKER_SHELL, 10));
             treasure.add(Mytems.DIAMOND_COIN.createItemStack(10));
             treasure.add(new ItemStack(Material.TINTED_GLASS, 64));
-            treasure.add(new ItemStack(Material.BREEZE_ROD, 32));
             for (int i = 0; i < treasureChance; i += 1) {
                 result.add(treasure);
             }
