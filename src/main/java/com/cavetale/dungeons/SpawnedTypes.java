@@ -14,6 +14,8 @@ public final class SpawnedTypes {
         EntityType.WITHER_SKELETON,
         EntityType.HUSK,
         EntityType.DROWNED,
+        EntityType.BOGGED,
+        EntityType.STRAY,
     };
 
     private static final EntityType[] TRIAL_SPAWNER = new EntityType[] {
