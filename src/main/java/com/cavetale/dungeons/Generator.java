@@ -187,7 +187,7 @@ final class Generator implements Listener {
                     Block block = origin.getRelative(x, y, z);
                     BlockState blockState = block.getState();
                     if (blockState instanceof CreatureSpawner spawner) {
-                        spawner.setSpawnedType(SpawnedTypes.random(rnd));
+                        spawner.setSpawnedType(SpawnedTypes.dungeonSpawner(rnd));
                         spawner.update();
                         spawnerCount += 1;
                     } else if (blockState instanceof Container container) {

@@ -119,7 +119,7 @@ final class Manager implements Listener {
                         trialSpawner.getOminousConfiguration().setBaseSimultaneousEntities(4);
                         trialSpawner.getOminousConfiguration().setBaseSpawnsBeforeCooldown(16);
                         trialSpawner.getOminousConfiguration().setSpawnRange(6);
-                        trialSpawner.getOminousConfiguration().setSpawnedType(SpawnedTypes.random(random));
+                        trialSpawner.getOminousConfiguration().setSpawnedType(SpawnedTypes.trialSpawner(random));
                         trialSpawner.update();
                     }
                     final Location center = block.getLocation().add(0.5, 0.5, 0.5);
@@ -355,7 +355,7 @@ final class Manager implements Listener {
                 if (!(block.getState() instanceof CreatureSpawner spawner)) return;
                 int spawned = spawner.getPersistentDataContainer().getOrDefault(SPAWNED_KEY, PersistentDataType.INTEGER, 0);
                 spawner.getPersistentDataContainer().set(SPAWNED_KEY, PersistentDataType.INTEGER, spawned + 1);
-                final EntityType spawnedType = SpawnedTypes.random(random);
+                final EntityType spawnedType = SpawnedTypes.dungeonSpawner(random);
                 spawner.setSpawnedType(spawnedType);
                 spawner.update();
                 if (spawned > 10) {
@@ -411,7 +411,7 @@ final class Manager implements Listener {
         }
         Bukkit.getScheduler().runTask(dungeonsPlugin(), () -> {
                 if (!(block.getState() instanceof TrialSpawner trialSpawner)) return;
-                trialSpawner.getOminousConfiguration().setSpawnedType(SpawnedTypes.random(random));
+                trialSpawner.getOminousConfiguration().setSpawnedType(SpawnedTypes.trialSpawner(random));
                 trialSpawner.update();
             });
     }
