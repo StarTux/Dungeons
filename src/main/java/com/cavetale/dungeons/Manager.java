@@ -387,20 +387,20 @@ final class Manager implements Listener {
             double damage = 0.0;
             double armor = 0.0;
             for (Player player : event.getTrialSpawner().getTrackedPlayers()) {
-                health = Math.max(health, player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
-                damage = Math.max(damage, player.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).getValue());
-                armor = Math.max(armor, player.getAttribute(Attribute.GENERIC_ARMOR).getValue() * 0.75);
+                health = Math.max(health, player.getAttribute(Attribute.MAX_HEALTH).getValue());
+                damage = Math.max(damage, player.getAttribute(Attribute.ATTACK_DAMAGE).getValue());
+                armor = Math.max(armor, player.getAttribute(Attribute.ARMOR).getValue() * 0.75);
             }
-            final AttributeInstance maxHealthAttribute = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+            final AttributeInstance maxHealthAttribute = mob.getAttribute(Attribute.MAX_HEALTH);
             if (maxHealthAttribute != null) {
                 maxHealthAttribute.setBaseValue(Math.max(health, maxHealthAttribute.getBaseValue()));
                 mob.setHealth(health);
             }
-            final AttributeInstance attackDamageAttribute = mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
+            final AttributeInstance attackDamageAttribute = mob.getAttribute(Attribute.ATTACK_DAMAGE);
             if (attackDamageAttribute != null) {
                 attackDamageAttribute.setBaseValue(Math.max(damage, attackDamageAttribute.getBaseValue()));
             }
-            final AttributeInstance armorAttribute = mob.getAttribute(Attribute.GENERIC_ARMOR);
+            final AttributeInstance armorAttribute = mob.getAttribute(Attribute.ARMOR);
             if (armorAttribute != null) {
                 armorAttribute.setBaseValue(Math.max(armor, armorAttribute.getBaseValue()));
             }
