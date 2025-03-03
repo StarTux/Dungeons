@@ -508,5 +508,6 @@ final class Manager implements Listener {
         result.add(Mytems.IRON_SCYTHE.createItemStack());
         result.add(Mytems.TREE_CHOPPER.createItemStack());
         result.add(Mytems.HASTY_PICKAXE.createItemStack());
+        result.add(Mytems.BINOCULARS.createItemStack());
     }
 }
