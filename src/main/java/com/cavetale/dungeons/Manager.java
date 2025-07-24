@@ -136,7 +136,7 @@ final class Manager implements Listener {
                 lootedDungeon = dungeon;
                 lootedBoundingBox = structure.getBoundingBox();
                 lootingPlayer = player.getUniqueId();
-                lootItem = getLootPoolItem(7, 7, 1);
+                lootItem = getLootPoolItem(1, 1, 1);
                 final LootContext lootContext = new LootContext.Builder(block.getLocation())
                     .killer(player)
                     .build();
@@ -465,7 +465,7 @@ final class Manager implements Listener {
                     lootedDungeon = dungeon;
                     lootedBoundingBox = structure.getBoundingBox();
                     lootingPlayer = player.getUniqueId();
-                    lootItem = getLootPoolItem(1, 3, 1);
+                    lootItem = getLootPoolItem(1, 1, 6);
                     final LootContext lootContext = new LootContext.Builder(block.getLocation())
                         .killer(player)
                         .build();
