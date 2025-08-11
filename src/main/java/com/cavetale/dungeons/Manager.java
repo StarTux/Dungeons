@@ -55,6 +55,7 @@ import org.bukkit.persistence.PersistentDataType;
 import static com.cavetale.core.exploits.PlayerPlacedBlocks.isPlayerPlaced;
 import static com.cavetale.dungeons.DungeonsPlugin.DUNGEON_KEY;
 import static com.cavetale.dungeons.DungeonsPlugin.dungeonsPlugin;
+import static com.cavetale.mytems.loot.Loot.loot;
 import static com.cavetale.mytems.util.Text.formatDouble;
 import static com.cavetale.structure.StructurePlugin.structureCache;
 import static net.kyori.adventure.text.Component.text;
@@ -249,7 +250,7 @@ final class Manager implements Listener {
             rare.add(new ItemStack(Material.HEART_OF_THE_SEA));
             rare.add(new ItemStack(Material.HEAVY_CORE));
             rare.add(new ItemStack(Material.END_PORTAL_FRAME));
-            populateLootMytems(rare);
+            loot().populatePrimeLoot(rare, 1);
             for (int i = 0; i < rareChance; i += 1) {
                 result.add(rare);
             }
@@ -477,37 +478,5 @@ final class Manager implements Listener {
                     lootItem = null;
                 }
             });
-    }
-
-    private static void populateLootMytems(List<ItemStack> result) {
-        result.add(Mytems.RUBY_COIN.createItemStack());
-        result.add(Mytems.MAGIC_CAPE.createItemStack());
-        result.add(Mytems.MOBSLAYER.createItemStack());
-        result.add(Mytems.BINGO_BUKKIT.createItemStack());
-        result.add(Mytems.WITCH_BROOM.createItemStack());
-        result.add(Mytems.BLUNDERBUSS.createItemStack());
-        result.add(Mytems.CAPTAINS_CUTLASS.createItemStack());
-        result.add(Mytems.ENDERBALL.createItemStack());
-        result.add(Mytems.MAGNIFYING_GLASS.createItemStack());
-        result.add(Mytems.FERTILIZER.createItemStack(64));
-        result.add(Mytems.SNOW_SHOVEL.createItemStack());
-        result.add(Mytems.SNEAKERS.createItemStack());
-        result.add(Mytems.UNICORN_HORN.createItemStack());
-        result.add(Mytems.SEALED_CAVEBOY.createItemStack());
-        result.add(Mytems.SCISSORS.createItemStack());
-        result.add(Mytems.COLORFALL_HOURGLASS.createItemStack());
-        result.add(Mytems.STRUCTURE_FINDER.createItemStack());
-        result.add(Mytems.DEFLECTOR_SHIELD.createItemStack());
-        result.add(Mytems.COPPER_SPLEEF_SHOVEL.createItemStack());
-        result.add(Mytems.DIVIDERS.createItemStack());
-        result.add(Mytems.YARDSTICK.createItemStack());
-        result.add(Mytems.LUMINATOR.createItemStack());
-        result.add(Mytems.SCUBA_HELMET.createItemStack());
-        result.add(Mytems.MINER_HELMET.createItemStack());
-        result.add(Mytems.EMPTY_WATERING_CAN.createItemStack());
-        result.add(Mytems.IRON_SCYTHE.createItemStack());
-        result.add(Mytems.TREE_CHOPPER.createItemStack());
-        result.add(Mytems.HASTY_PICKAXE.createItemStack());
-        result.add(Mytems.BINOCULARS.createItemStack());
     }
 }
