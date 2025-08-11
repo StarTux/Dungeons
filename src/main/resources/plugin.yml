@@ -1,7 +1,7 @@
 main: com.cavetale.dungeons.DungeonsPlugin
 name: Dungeons
 version: 0.1
-api-version: '1.21'
+api-version: '1.21.8'
 
 description: Spawn custom dungeons
 author: StarTux
